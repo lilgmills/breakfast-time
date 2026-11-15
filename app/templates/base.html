@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+</head>
+<body class="pattern">
+    <div class="main-content">
+        <header>
+            <h1>Breakfast Time</h1>
+        </header>
+
+        <nav>
+            {% block home %}{% endblock %}
+
+            <a href="/shopping" class="nav-anchor">
+                <div class="nav-button" id="shopping-list-nav">
+                    <h2>Shopping List</h2>
+                </div>
+            </a>
+                
+            <a href="/inventory" class="nav-anchor">
+                <div class="nav-button" id="inventory-nav">
+                    <h2>Inventory</h2>
+                </div>
+            </a>
+                
+            <a href="/menu" class="nav-anchor">
+                <div class="nav-button" id="menu-nav">
+                    <h2>Full Menu</h2>
+                </div>
+            </a>
+            
+        </nav>
+
+        <main>
+            {% block main %}{% endblock %}
+        </main>
+    </div>
+    
+    {% block script %} {% endblock %}
+</body>
+
+</html>

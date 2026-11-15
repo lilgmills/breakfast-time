@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Breakfast Time{% endblock %}
+
+{% block main %}
+    <div class="flex-headers-parent">
+        <div class="complete-and-missing-header">
+            <h2>Complete breakfasts</h2>
+        </div>
+
+        <div class="complete-and-missing-header">
+            <h2>Breakfasts missing ingredients</h2>
+        </div>
+    </div>
+    
+    <div class="flex-parent">
+        <div class="flex-column-left">
+            
+            <div>
+                {% for breakfast in complete_breakfasts %}
+                <a href="/menu/{{ breakfast.breakfast_id }}" class="breakfast-content-link">
+                    <div class="breakfast-content-pane">
+                        <div>
+                            <h3>{{ breakfast.breakfast_name }}</h3>
+                        </div>
+                    </div>
+                </a>
+                    
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex-column-right">
+        
+            <div>
+                {% for breakfast_missing_ingredient in breakfasts_missing_ingredients %}
+                <a href="/menu/{{ breakfast_missing_ingredient.breakfast.breakfast_id }}" class="breakfast-content-link">
+                    <div class="breakfast-content-pane">
+                        <div>
+                            <h3>{{ breakfast_missing_ingredient.breakfast.breakfast_name }}</h3>
+                        </div>
+                        {% if breakfast_missing_ingredient.required_ingredients_missing | length > 0 %}
+                        <div class="required-ingredients-content">
+                            <div class="required-ingredients-subhead">
+                                <h4 class="required-subhead-text">Required ingredients missing</h4>
+                                <div>
+                                    <div class="add-all-button">Select all</div>
+                                </div>
+                            </div>
+                            
+                            <ul class="required-list">
+                                {% for ingredient in breakfast_missing_ingredient.required_ingredients_missing %}
+                                <li class="required-li">
+                                    {% set unique_id = breakfast_missing_ingredient.breakfast.breakfast_id ~ "-" ~ ingredient.ingredient_id %}
+                                    <input type="checkbox" class="shopping-item" id="{{unique_id}}" name="{{ingredient.ingredient_id}}">
+                                    <label for="{{unique_id}}">{{ ingredient.ingredient_name }}</label>
+                                    
+                                </li>      
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        <div>
+                            {% if breakfast_missing_ingredient.missing_optional_group_ingredients | length > 0 %}
+                            <div>
+                                <h4>Optional groups missing all requirements. <span class="pick-at-least-one">Pick at least <span class="pink-emphasis">one</span> in each group.</span></h4>
+                            </div>
+                            <div>
+                                <ol class="optional-group-list">
+                                    {% for optional_group in breakfast_missing_ingredient.missing_optional_group_ingredients %}
+                                    <li>
+                                        <div>
+                                            
+                                        </div>
+                                        <ul class="optionals-list">
+                                            {% for ingredient in optional_group.ingredients_list %}
+                                            <li class="optional-li">
+                                                <input type="checkbox" class="shopping-item" name="{{ ingredient.ingredient_id}}" id="{{ ingredient.ingredient_id}}">
+                                                <label for="{{ ingredient.ingredient_id}}">{{ ingredient.ingredient_name}}</label>  
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+
+                                    </li>
+                                    {% endfor %}
+                                </ol>  
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <div id="add-items-to-list">
+        <h2>Add These Items to Shopping List</h2>
+    </div>
+{% endblock %}
+
+{% block script %}<script src="{{ url_for('static', filename='js/script.js') }}"></script>{% endblock %}

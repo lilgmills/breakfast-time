@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping List{% endblock %}
+
+{% block home %}
+    <a href="/" class="nav-anchor">
+        <div class="nav-button" id="shopping-list-nav">
+            <h2>Return Home</h2>
+        </div>
+    </a>
+{% endblock %}
+    
+{% block main %}
+<div id="shopping-list-page-content">
+    <div class="functions-header">
+        <h2 id="shopping-list-bigger">Shopping List</h2>
+
+        <div class="functions">
+            <label for="format-select">Format</label>
+            <select name="format" id="format-select">
+                <option value="plaintext">Plaintext</option>
+                <option value="list">List</option>
+                <option value="markdown">Markdown</option>
+            </select>
+            <div id="copy-tool" class="plaintext">
+                <div id="copy-clipboard-button">
+                    <p>Copy to clipboard</p>
+                </div>
+            </div>
+            <p class="off" id="copied-notification">
+                Copied to clipboard
+            </p>
+        </div>
+    </div>
+
+    <div id="formatted-list-preview">
+        {% if shopping_list | length > 0 %}
+        <ul class="shopping-items-list">
+            {% for shopping_item in shopping_list %}
+            <li class="shopping-item">
+                {{ shopping_item.ingredient_name }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <h3>Your shopping list is empty</h3>
+        
+        {% endif %}
+    </div>
+</div>
+    
+
+    
+
+{% endblock %}
+
+{% block script %}<script src="{{ url_for('static', filename='js/shopping.js') }}"></script>{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Breakfast Time{% endblock %}
+
+{% block home %}
+    <a href="/" class="nav-anchor">
+        <div class="nav-button" id="shopping-list-nav">
+            <h2>Return Home</h2>
+        </div>
+    </a>
+{% endblock %}
+
+{% block main %}
+
+{% for breakfast in breakfasts %}
+<a href="/menu/{{breakfast.breakfast_id}}" class="breakfast-content-link">
+    <div class="breakfast-content-pane">
+        <div>
+            <h3>{{ breakfast.breakfast_name }}</h3>
+        </div>
+    </div>
+</a>
+    
+{% endfor %}
+
+{% endblock %}
