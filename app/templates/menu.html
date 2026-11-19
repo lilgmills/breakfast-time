@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Breakfast Time{% endblock %}
+{% block title %}Menu{% endblock %}
 
 {% block home %}
     <a href="/" class="nav-anchor">
@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block main %}
-
+<h2 id="bigger-title">Menu</h2>
 {% for breakfast in breakfasts %}
 <a href="/menu/{{breakfast.breakfast_id}}" class="breakfast-content-link">
     <div class="breakfast-content-pane">

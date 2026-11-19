@@ -1,6 +1,6 @@
 body {
     font-family: "Plus Jakarta Sans", sans-serif;
-    color: rgb(214, 214, 214);
+    color: rgb(230, 230, 230);
     margin: 0;
 }
 
@@ -195,6 +195,28 @@ h1 {
     transition: 0.0s;
 }
 
+#add-new-inventory-item {
+    background-color: rgb(41, 202, 122);
+    color: black;
+    padding: 2px 80px;
+    border-radius: 16px;
+    position: fixed;
+    bottom: 60px;
+    right: 84px;
+    box-shadow: inset 0px 5px 5px 0px rgba(255, 255, 255, 0.3);
+    transition: background-color 0.3s ease-out,
+                box-shadow 0.3s ease-out;
+}
+
+#add-new-inventory-item:hover {
+    background-color: rgb(180, 253, 229);
+    color: black;
+    box-shadow: inset 0px 8px 10px 10px rgba(255, 255, 255, 0.5);
+    transition: background-color 0.1s ease-out,
+                box-shadow 0.1s ease-out;
+    cursor: pointer;
+}
+
 .pick-at-least-one {
     color: rgb(167, 167, 167);
     font-style: italic;
@@ -230,7 +252,7 @@ h1 {
 
 .off {
     opacity: 0;
-    transition: opacity .25s ease-in;
+    transition: opacity .25s linear;
 }
 
 .shopping-items-list {
@@ -268,7 +290,7 @@ h1 {
     margin-top: 17px;
 }
 
-#shopping-list-bigger {
+#bigger-title {
     color: rgb(228, 177, 66);
     text-shadow: 2px 1px 3px rgba(255, 255, 255, 0.5),
                 4px 2px 8px rgba(0, 0, 0, 0.5);
@@ -287,3 +309,292 @@ h1 {
     padding-bottom: 100px;
     padding-left: 60px;
 }
+
+.ingredient-name {
+    min-width: 15vw;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.delete-button-container {
+    margin: 2px 0px 0px 98px;
+    transition: margin .1s linear;
+}
+
+.delete-button-container:has(.delete-button-background:hover) {
+    margin: 0px 2px 4px 94px;
+}
+
+.delete-button-background {
+    max-height: 0.3in;
+    max-width: 0.3in;
+    border-radius: 7px;
+    
+    background-color: rgb(99, 99, 99);
+    transition: background-color .1s ease-in-out,
+                box-shadow .1s ease-in-out;
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0),
+                0px 0px 0px rgba(134, 134, 134, 0);
+}
+
+.delete-button-background:hover {
+    cursor: pointer;
+    background-color: rgb(255, 255, 255);
+    
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 1),
+                0px 0px 39px 6px rgb(73, 73, 73);
+}
+
+.delete-button-background > svg > path{
+    fill: #535353;
+    transition: fill .1s ease-in-out;
+}
+.delete-button-background:hover > svg > path {
+     fill: rgb(218, 20, 20);
+}
+
+.delete-button-background:active > svg > path {
+    fill: white;
+}
+
+.ingredient-in-inventory {
+    display:flex;
+    align-items: center;
+    font-size: 1.3em;
+    justify-content: space-around;
+}
+
+.true-in-inventory {   
+    color:aquamarine;
+}
+
+.false-in-inventory {   
+    color:rgb(99, 99, 99);
+}
+
+.true-in-inventory, .false-in-inventory {
+    margin-left: 1.8em;
+    margin-top: 0.6em;
+    transition: font-weight .1s ease-in,
+    margin-left .05s ease-in,
+    margin-top .05s ease-in,
+    margin-bottom .05s ease-in,
+    margin-right .05s ease-in,
+    font-size .05s ease-in,
+    color .05s ease-in;
+    user-select: none;
+    -webkit-user-select: none;
+    
+}
+
+.true-in-inventory:hover, .false-in-inventory:hover {
+    margin-left: 1.4em;
+    margin-top: .4em;
+    font-weight: 600;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+.true-in-inventory:hover {
+    color: rgb(84, 255, 126);
+}
+
+.false-in-inventory:hover {
+    color: rgb(149, 114, 243);
+}
+
+.true-in-inventory:active, .false-in-inventory:active {
+    color:white;
+    font-size: 1em;
+    font-weight: 900;
+    margin-left: 1.8em;
+    margin-top: 0.6em;
+}
+
+
+
+#delete-header {
+    margin-left: 28px;
+}
+
+.ingredient-name > p {
+    margin-left: 28px;
+}
+
+.ingredients-inventory-table {
+    margin-top: 36px;
+}
+
+#modal-backdrop {
+    position: fixed;
+    inset: 0; /* Covers top, right, bottom, left: 0 */
+    background: rgba(0, 0, 0, 0.5); /* Can also be 'transparent' */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+#modal-are-you-sure {
+    background-color: #373e4d;
+    padding: 5em;
+    border-radius: 25px;
+    visibility: hidden;
+    z-index: 9999;
+}
+
+#modal-create-inventory-item {
+    background-color: #373e4d;
+    padding: 5em;
+    border-radius: 25px;
+
+}
+
+.modal-button-row {
+    margin-top: 25px;
+    display:flex;
+    justify-content: space-around;
+}
+
+#cancel-deletion, #confirm-deletion {
+    padding: 8px;
+    border-radius: 3px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#cancel-deletion:hover, #confirm-deletion:hover {
+    padding: 8px;
+    border-radius: 3px;
+    box-shadow: inset 1px 1px rgba(0,0,0,0.5),
+                inset -1px -1px rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+}
+
+#cancel-deletion {
+    color:black;
+    background-color:rgb(231, 231, 231)
+}
+
+#cancel-deletion:hover {
+    color:black;
+    background-color:rgb(182, 182, 182)
+}
+
+#confirm-deletion {
+    color:black;
+    background-color: rgb(231, 231, 231);
+}
+
+#confirm-deletion:hover {
+    color:black;
+    background-color: rgb(192, 0, 0);
+}
+
+#cancel-creation {
+    color:black;
+    background-color:rgb(231, 231, 231)
+}
+
+#create-item-submit {
+    color: black;
+    background-color: aquamarine;
+}
+
+#cancel-creation:hover {
+    background-color:rgb(182, 182, 182);
+}
+
+#create-item-submit:hover {    
+    background-color: rgb(82, 255, 197);
+}
+
+#cancel-creation:active, #create-item-submit:active {    
+    background-color: rgb(255, 255, 255);
+}
+
+#cancel-creation, #create-item-submit {
+    padding: 8px;
+    border-radius: 3px;
+}
+
+#cancel-creation:hover, #create-item-submit {
+    padding: 8px;
+    border-radius: 3px;
+    box-shadow: inset 1px 1px rgba(0,0,0,0.5),
+                inset -1px -1px rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+}
+
+
+
+.centered-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+
+.check-blue-svg {
+    width: 23px;
+    height: 23px;
+    
+    background-color: white;
+    border-radius: 50%;
+}
+
+.check-blue-svg:hover {
+    width: 28px;
+    height: 28px;
+    box-shadow: 0px 0px 23px 2px rgba(115, 145, 192, 0.2);
+    cursor: pointer;
+}
+
+.check-blue-svg:hover > path {
+    fill: rgb(24, 209, 255);
+}
+
+.check-blue-svg:active > path {
+    fill: rgb(74, 92, 97);
+}
+.check-blue-svg:active {
+    width: 20px;
+    height: 20px;
+    box-shadow: 0px 0px 23px 2px rgba(115, 145, 192, 0.8);
+    background-color: #3d3833;
+    cursor:pointer;
+}
+
+.grey-outline {
+    width: 23px;
+    aspect-ratio: 1;
+    border: 3px solid rgb(48, 48, 48);
+    border-radius: 50%;
+    transition: width 0.05s linear,
+                border 0.05s linear,
+                box-shadow 0.05s linear;
+}
+
+.grey-outline:hover {
+    width: 26px;
+    border: 3px solid #39363b;
+    box-shadow: 0px 0px 23px 2px rgba(115, 145, 192, 0.3),
+        inset 0px 0px 4px 5px  rgba(115, 145, 192, 0.1);
+    background-color: rgba(115, 145, 192, 0.0);
+    cursor:pointer;
+}
+
+.grey-outline:active {
+    width: 20px;
+    border: 4px solid rgba(48, 48, 48, 0.5);
+    box-shadow: 0px 0px 23px 2px rgba(115, 145, 192, 0.8),
+        inset 0px 0px 4px 5px  rgba(115, 145, 192, 0.4);
+    cursor:pointer;
+}
+
+.ingredient-inventory-display:hover {
+    background-color:rgba(87, 87, 87, 0.3);
+    width: 101%;
+}
+

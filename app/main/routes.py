@@ -2,6 +2,7 @@ import os
 import csv
 from app.main import main
 from flask import Flask, render_template, current_app, request, jsonify
+import html
 
 def get_path_to_csv_file(f_name):
     return os.path.join(
@@ -15,6 +16,7 @@ def read_csv_file(filename):
         
         rows = list(reader)
                 
+        # in_inventory is converted to a Boolean when it is read, but it is a string 0/1 when saved
         if "in_inventory" in reader.fieldnames:
             for row in rows:
                 row["in_inventory"] = row["in_inventory"].strip() == '1'
@@ -22,6 +24,8 @@ def read_csv_file(filename):
         return rows
     
 def append_csv_file(f_name, fieldnames, record):
+    
+    #get_path_to_csv assumes that csv is in the "instance" folder
     filename = get_path_to_csv_file(f_name)
     needs_newline = False
     
@@ -170,7 +174,158 @@ def breakfast(breakfast_id):
 
 @main.route("/inventory")
 def inventory():
-    return render_template("inventory.html")
+    ingredients = load_csv_data("ingredient.csv")
+    
+    on_shopping_list_ids = [item["ingredient_id"] for item in load_csv_data("shopping_list.csv")]
+    print(on_shopping_list_ids)
+    ingredients_with_shopping_flag = [{
+        "ingredient_id":ingredient["ingredient_id"],
+        "ingredient_name":ingredient["ingredient_name"],
+        "on_shopping_list":ingredient["ingredient_id"] in on_shopping_list_ids,
+        "in_inventory":ingredient["in_inventory"]
+    } for ingredient in ingredients]
+    
+    return render_template("inventory.html", **{"ingredients":ingredients_with_shopping_flag})
+
+@main.route("/inventory/<ingredient_id>", methods=['POST'])
+def toggle_inventory(ingredient_id):
+    ingredients = load_csv_data("ingredient.csv")
+        
+    # create a lookup dictionary for ingredients
+    ingredient_lookup = {
+        ingredient["ingredient_id"] : ingredient for ingredient in ingredients
+    }
+    
+    for ingredient in ingredients:
+        ingredient["in_inventory"] = "0" if not ingredient["in_inventory"] else "1"
+        if ingredient["ingredient_id"] == ingredient_id:
+            ingredient["in_inventory"] = "0" if ingredient["in_inventory"] == "1" else "1"
+            
+            
+            
+    with open(get_path_to_csv_file("ingredient.csv"), mode='w', newline='', encoding='utf-8') as file:
+        fieldnames=["ingredient_id","ingredient_name","in_inventory"]
+        writer = csv.DictWriter(file, fieldnames)
+        header_row = [{"ingredient_id":"ingredient_id","ingredient_name":"ingredient_name","in_inventory":"in_inventory"}]
+        writer.writerows(header_row + ingredients)
+    
+    message = "Inventory for {} updated to '{}'. (ingredient_id = {})".format(ingredient_lookup[ingredient_id]["ingredient_name"],
+                                                                             "Yes" if ingredient_lookup[ingredient_id] == 1 else "No",
+                                                                             ingredient_id)
+    
+    return jsonify({
+            "success":True,
+            "message": message
+        }), 200
+    
+@main.route("/inventory/create", methods=['POST'])
+def create_new_ingredient():
+    ingredients = load_csv_data("ingredient.csv")
+    ingredient_lookup = {
+        ingredient["ingredient_id"] : ingredient for ingredient in ingredients
+    }
+    
+    #check if name is already in the ingredients list
+    #only checks for exact duplicates, non-case sensitive
+    
+    
+    new_name = html.escape(request.get_json()["ingredient_name"])
+    
+    new_name_not_case_sens = new_name.lower().strip()
+    
+    if new_name_not_case_sens == "":
+        return jsonify({
+                        "success":False,
+                        "message":"User submitted an empty string"
+                        }), 200
+    auto_increment = 0
+    
+    for ingredient in ingredients:
+        if new_name_not_case_sens == ingredient["ingredient_id"].lower().strip():
+            
+            return jsonify({
+                "success":False,
+                "message":"User submitted a duplicate name"
+                }), 200
+        auto_increment = max(auto_increment, int(ingredient["ingredient_id"]))
+    
+    new_id = str(auto_increment+1)
+    # add new item to csv
+    fieldnames = ["ingredient_id","ingredient_name","in_inventory"]
+    new_record = {"ingredient_id":new_id,
+                  "ingredient_name":new_name,
+                  "in_inventory":request.get_json()["in_inventory"]}
+    append_csv_file("ingredient.csv", fieldnames, new_record)
+    return jsonify({
+        "success":True,
+        "new_id":new_id,
+        "message":"{} was inserted into inventory".format(new_name)
+        }), 200
+    
+@main.route("/inventory/delete/<ingredient_id>")
+def delete_ingredient(ingredient_id):
+    ingredients = load_csv_data("ingredient.csv")
+    
+    # create a lookup dictionary for ingredients
+    ingredient_lookup = {
+        ingredient["ingredient_id"] : ingredient for ingredient in ingredients
+    }
+    
+    shopping_list = load_csv_data("shopping_list.csv")
+    shopping_list_lookup = [item["ingredient_id"] for item in shopping_list]
+    rewrite_shopping_list = str(ingredient_id) in shopping_list_lookup
+    rewrite_rows = [{"ingredient_id":id} for id in shopping_list_lookup if id != ingredient_id]
+    
+    breakfast_ingredients = load_csv_data("breakfast_ingredient.csv")
+    rewrite_breakfast_csv = [breakfast_ingredient for breakfast_ingredient in breakfast_ingredients if breakfast_ingredient["ingredient_id"] != ingredient_id]
+    
+    
+    if (str(ingredient_id) in ingredient_lookup):
+        name = ingredient_lookup[ingredient_id]["ingredient_name"]
+        
+        rows = [ingredient for ingredient in ingredients if ingredient["ingredient_id"] != str(ingredient_id)]
+        print(rows)
+        for row in rows:
+            row["in_inventory"] = 1 if row["in_inventory"] else 0
+        
+        try:
+            with open(get_path_to_csv_file("ingredient.csv"), mode='w', newline='', encoding='utf-8') as file:
+                fieldnames=["ingredient_id","ingredient_name","in_inventory"]
+                writer = csv.DictWriter(file, fieldnames)
+                header_row = [{"ingredient_id":"ingredient_id","ingredient_name":"ingredient_name","in_inventory":"in_inventory"}]
+                writer.writerows(header_row + rows)
+                
+            with open(get_path_to_csv_file("breakfast_ingredient.csv"), mode='w', newline='', encoding='utf-8') as file:
+                fieldnames=["breakfast_id","ingredient_id","optional_group"]
+                writer = csv.DictWriter(file, fieldnames)
+                header_row = [{"breakfast_id":"breakfast_id","ingredient_id":"ingredient_id","optional_group":"optional_group"}]
+                writer.writerows(header_row + rewrite_breakfast_csv)
+                
+            if rewrite_shopping_list:
+                with open(get_path_to_csv_file("shopping_list.csv"), mode='w', newline='', encoding='utf-8') as file:
+                    fieldnames= ["ingredient_id"]
+                    writer = csv.DictWriter(file, fieldnames)
+                    header_row = [{"ingredient_id":"ingredient_id"}]
+                    writer.writerows(header_row + rewrite_rows)
+            response = jsonify({
+                    "success": True,
+                    "message": "ID = {} deleted ({})".format(ingredient_id, name)
+                })
+        except:
+            response = jsonify({
+                    "success": False,
+                    "message": "Error occured. ID = {} was not deleted ({})".format(ingredient_id, name)
+                })
+        
+    else:
+        print("Error message: we could not find {}".format(ingredient_id))
+        response = jsonify({
+                "success": False,
+                "message": "ID = {} was not found and could not be deleted".format(ingredient_id)
+            })   
+    
+    return response
+    
 
 @main.route("/shopping")
 def shopping():
@@ -181,10 +336,13 @@ def shopping():
         ingredient["ingredient_id"] : ingredient for ingredient in ingredients
     }
     
-    return render_template("shopping.html", **{"shopping_list": [ingredient_lookup[shopping_item["ingredient_id"]] for shopping_item in shopping_list]})
+    shopping_list_ingredients = [ingredient_lookup[shopping_item["ingredient_id"]] for shopping_item in shopping_list]
+    
+    return render_template("shopping.html",
+                           **{"shopping_list": shopping_list_ingredients})
 
 # put a new ingredient on the shopping list by its id
-@main.route('/add_shopping_items', methods=["POST"])
+@main.route('/add_shopping_items', methods=['POST'])
 def add_to_shopping_list():
     data = request.get_json()
     new_shopping_items = data.get("items", [])

@@ -1,11 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Inventory{% endblock %}
+
+{% block home %}
+    <a href="/" class="nav-anchor">
+        <div class="nav-button" id="shopping-list-nav">
+            <h2>Return Home</h2>
+        </div>
+    </a>
+{% endblock %}
+
+{% block main %}
+{% include "check_blue.svg" %}
+<h2 id="bigger-title">
+    Inventory
+</h2>
+<table class="ingredients-inventory-table" style="border-collapse: collapse">
+    <thead>
+        <tr class="ingredient-table-headers">
+            <th>
+                Ingredient
+            </th>
+            <th>
+                On Shopping List?
+            </th>
+            <th style="padding-left: 36px;">
+                In Inventory?
+            </th>
+            <th>
+                <div id="delete-header">
+                    Delete from Inventory
+                </div>
+            
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ingredient in ingredients %}
+        <tr class="ingredient-inventory-display" id="_{{ingredient.ingredient_id}}">
+            <td class="ingredient-name">
+                <p>{{ ingredient.ingredient_name }}</p>
+            </td>
+            <td class="on-shopping-list">
+                {% if ingredient.on_shopping_list %}
+                <div class="blue-check-background white" style="display:flex;justify-content:space-around;">
+                    {% include "check_blue.svg" %}
+                </div>
+                {% else %}
+                <div class="blue-check-background grey" style="display:flex;justify-content:space-around;">
+                    <div class="grey-outline"></div>
+                </div>
+                {% endif %}
+            </td>
+            <td class="ingredient-in-inventory">
+                {% if ingredient.in_inventory %}
+                <div class="true-in-inventory toggle">
+                    Yes
+                </div>
+                {% else %}
+                <div class="false-in-inventory toggle">
+                    No
+                </div>
+                {% endif %}
+            </td>
+            <td class="delete-ingredient-from-inventory">
+                <div class="delete-button-container">
+                    <div class="delete-button-background">
+                        {% include "delete.svg" %}
+                    </div>
+                </div>
+                
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
     
-</body>
-</html>
+
+</table>
+
+
+
+<div id="modal-backdrop" class="backdrop" style="visibility:hidden">
+    <div id="modal-are-you-sure" class="active centered-overlay">
+        <div>
+            <div>You are about to delete an ingredient permanently from the inventory.</div>
+            <div>Are you sure you want to proceed?</div>
+        </div>
+        <div class="modal-button-row">
+            <div id="cancel-deletion">Go Back</div>
+            <div id="confirm-deletion">Delete</div>
+        </div>  
+    </div>
+
+    <div id="modal-create-inventory-item" class="active-centered-overlay">
+        <div>
+            <h2>Add new ingredient</h2>
+        </div>
+        <div>
+            <label for="ingredient-name-input">Ingredient name</label>
+            <input type="text" id="ingredient-name-input">
+        </div>
+        <div>
+            <label for="add-to-shopping-list">Add this ingredient to shopping list?<input type="checkbox" id="add-to-shopping-list"></label>
+
+        </div>
+        <div>
+            <label for="new-item-in-inventory">Is this ingredient in your inventory?<input type="checkbox" id="new-item-in-inventory"></label>
+        </div>
+        <div class="modal-button-row">
+            <div id="cancel-creation">Go Back</div>
+            <div id="create-item-submit">Create</div>
+        </div>
+    </div>
+</div>
+
+<div id="add-new-inventory-item">
+    <h2>Add new item to inventory</h2>
+</div>
+    
+
+<div id="was-deleted" class="active"></div>
+{% endblock %}
+
+{% block script %}<script src="{{ url_for('static', filename='js/inventory.js') }}"></script>{% endblock %}
