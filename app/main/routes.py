@@ -307,6 +307,7 @@ def delete_ingredient(ingredient_id):
                     writer = csv.DictWriter(file, fieldnames)
                     header_row = [{"ingredient_id":"ingredient_id"}]
                     writer.writerows(header_row + rewrite_rows)
+                    
             response = jsonify({
                     "success": True,
                     "message": "ID = {} deleted ({})".format(ingredient_id, name)
@@ -364,3 +365,32 @@ def add_to_shopping_list():
         "success":True,
         "message": "Shopping list updated"
     }), 200
+    
+    
+@main.route('/remove_shopping_item', methods=['POST'])
+def remove_from_shopping_list():
+    data = request.get_json()
+    remove_shopping_item_id = data.get("ingredient_id", "")
+    
+    shopping_list = [row["ingredient_id"] for row in load_csv_data("shopping_list.csv")]
+    
+    response = {
+        "success": False,
+        "message": "Could not find ID = {}".format(remove_shopping_item_id)    
+    }
+    
+    if remove_shopping_item_id in shopping_list:
+        try:
+            with open(get_path_to_csv_file("shopping_list.csv"), mode="w", newline="", encoding="utf-8") as file:
+                rows = [{"ingredient_id":id} for id in shopping_list if remove_shopping_item_id != id]
+                fieldnames = ["ingredient_id"]
+                writer = csv.DictWriter(file, fieldnames)
+                header_row = [{"ingredient_id":"ingredient_id"}]
+                writer.writerows(header_row + rows)
+                
+                response["success"] = True
+                response["message"] = "Item {} was successfully deleted".format(remove_shopping_item_id)
+        except:
+            response["message"] = "There was an error trying to delete item {}".format(remove_shopping_item_id)
+    
+    return jsonify(response), 200

@@ -25,13 +25,38 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     tableRow.className = "ingredient-inventory-display"
     tableRow.append(classIngredName);
 
+    const greyCircle = document.createElement("div");
+    greyCircle.className = "grey-outline";
+
+    const blueCheckBackground = document.createElement("div");
+    blueCheckBackground.className = "blue-check-background grey";
+    blueCheckBackground.style="display:flex;justify-content:space-around;"
+
+    blueCheckBackground.append(greyCircle);
+
+
+    blueCheckBackground.addEventListener("click", ()=>{
+        if (blueCheckBackground.classList.contains("white")) {
+            whiteToGrey(blueCheckBackground);
+        }
+        else if (blueCheckBackground.classList.contains("grey")) {
+            greyToWhite(blueCheckBackground);
+        }
+    })
+
+    
+    
+    
     const onShoppingList = document.createElement('td');
+    onShoppingList.className = "on-shopping-list"
+    onShoppingList.append(blueCheckBackground);
+
     tableRow.append(onShoppingList);
 
     const toggleDiv = document.createElement('div');
     toggleDiv.textContent = in_inventory == "1" ? "Yes" : "No";
     toggleDiv.className = in_inventory == "1" ? "true-in-inventory toggle" : "false-in-inventory toggle";
-    toggleDiv.addEventListener("click", (event)=>toggleToggle(event))
+    toggleDiv.addEventListener("click", (event)=>toggleInInventory(event))
     
     const tdInInventory = document.createElement('td');
     tdInInventory.className = "ingredient-in-inventory";
@@ -42,7 +67,7 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     
     const cloneDeleteButton = SVGdelete.cloneNode(deep=true);
     cloneDeleteButton.querySelector('.delete-button-background')
-        .addEventListener("click", (event)=>activateDeleteModal(event, new_id));
+        .addEventListener("click", (event)=>activateDeleteModal(event, tableRow.id));
     
     
     tableRow.append(cloneDeleteButton)
@@ -51,7 +76,7 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
 
 }
 
-function toggleToggle(event) {
+function toggleInInventory(event) {
     const toggle = event.target;
     if(toggle.classList.contains("true-in-inventory")) {
         toggle.classList.replace("true-in-inventory", "false-in-inventory")
@@ -65,7 +90,7 @@ function toggleToggle(event) {
 
 const requestItemDeletion = async (ingredient_id) => {
     try {
-        const response = await fetch(`/inventory/delete/${ingredient_id}`);
+        const response = await fetch(`/inventory/delete/${ingredient_id.slice(1)}`);
         data = await response.json();
     
         return data
@@ -87,13 +112,13 @@ const activateDeleteModal = async (event, ingredient_id) => {
     }) 
 
     confirmModal.querySelector('#confirm-deletion').addEventListener("click", async ()=>{
-        const deleteResult = await requestItemDeletion(ingredient_id.slice(1))
+        const deleteResult = await requestItemDeletion(ingredient_id)
         console.log(deleteResult)
         
         if(deleteResult.success) {
             modalBackdrop.style.visibility = "hidden";
             confirmModal.style.visibility = "hidden";
-            document.querySelector(`#_${ingredient_id}`)?.remove();
+            document.querySelector(`#${ingredient_id}`)?.remove();
         }        
     })
     
@@ -120,7 +145,7 @@ allRows.forEach((tr)=>{
 const toggles = document.querySelectorAll('.toggle');
 
 toggles.forEach((toggle)=>{
-    toggle.addEventListener("click", (event)=>toggleToggle(event))
+    toggle.addEventListener("click", (event)=>toggleInInventory(event))
 });
 
 allRows.forEach((row)=>{
@@ -161,14 +186,14 @@ addItemToInventoryButton.addEventListener("click", (event)=>{
     modalBackdrop.style.visibility = "visible";
     createItemModal.style.visibility = "visible";
     modalBackdrop.addEventListener("click", (event)=>{
-            if(!createItemModal.contains(event.target)) {
-                modalBackdrop.style.visibility = "hidden";
-                createItemModal.style.visibility = "hidden";
-                
-                createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
-                createItemModal.querySelector("input[type=text]").value = "";
-            }
-        })
+        if(!createItemModal.contains(event.target)) {
+            modalBackdrop.style.visibility = "hidden";
+            createItemModal.style.visibility = "hidden";
+            
+            createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
+            createItemModal.querySelector("input[type=text]").value = "";
+        }
+    })
 
     cancelCreateItem.addEventListener("click", (event)=>{
         modalBackdrop.style.visibility = "hidden";
@@ -255,7 +280,7 @@ function greyToWhite(clicked) {
 document.querySelectorAll(".on-shopping-list").forEach((td)=>{
     const clickable = td.querySelector(".blue-check-background")
         clickable.addEventListener("click", ()=>{
-            console.log(clickable)
+            
             if (clickable.classList.contains("white")) {
                 
                 whiteToGrey(clickable)
