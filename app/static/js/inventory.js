@@ -7,10 +7,10 @@ const modalCreateItem = document.querySelector('#modal-create-inventory-item');
 const cachedSVGClone = document.querySelector("svg");
 cachedSVGClone.style.visibility = "hidden";
 
-function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
+function createNewTableRow(new_id, newName, addShoppingList, inInventory) {
     // create the p tag for the ingredient name
     const nameText = document.createElement('p');
-    nameText.textContent = new_name;
+    nameText.textContent = newName;
     
     const classIngredName = document.createElement('td');
     classIngredName.className = "ingredient-name";
@@ -25,7 +25,8 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     // append the shopping_list element
 
     
-    if(add_shopping_list) {
+    if(addShoppingList) {
+
         shoppingStateElement = cachedSVGClone.cloneNode(true);
         shoppingStateElement.style.visibility = "visible";
     }
@@ -37,7 +38,17 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     const checkDetectClick = document.createElement('div');
     checkDetectClick.className = "check-detect-click"
     checkDetectClick.append(shoppingStateElement)
-    checkDetectClick.addEventListener("click", (event)=>toggleShoppingCheckmark(event));
+    checkDetectClick.addEventListener("click", (event)=> {
+        toggleShoppingCheckmark(event)
+        if (checkDetectClick.querySelector('svg')) {
+            requestDeleteFromShoppingList(tableRow.id);
+            whiteToGrey(checkDetectClick);
+        }
+        else if (checkDetectClick.querySelector('.grey-outline')) {
+            requestAddToShoppingList(tableRow.id);
+            greyToWhite(checkDetectClick);
+        }
+    });
     
 
     const blueCheckBackground = document.createElement("div");
@@ -53,8 +64,8 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     tableRow.append(onShoppingList);
 
     const toggleDiv = document.createElement('div');
-    toggleDiv.textContent = in_inventory == "1" ? "Yes" : "No";
-    toggleDiv.className = in_inventory == "1" ? "true-in-inventory toggle" : "false-in-inventory toggle";
+    toggleDiv.textContent = inInventory == "1" ? "Yes" : "No";
+    toggleDiv.className = inInventory == "1" ? "true-in-inventory toggle" : "false-in-inventory toggle";
     toggleDiv.addEventListener("click", (event)=>toggleInInventory(event))
     
     const tdInInventory = document.createElement('td');
@@ -114,9 +125,61 @@ const requestItemDeletion = async (ingredient_id) => {
     }
 }
 
+const requestAddToShoppingList = async (ingredient_id) => {
+    try {
+        const response = await fetch('/add_shopping_items', {
+            method: "POST",
+            body: JSON.stringify({
+                items: [ingredient_id.slice(1)],
+            }),
+            headers: {
+                "Content-Type": "application/json"
+            },
+            redirect: "manual"
+        })
 
- 
+        
+        const data = await response.json()
+        
+        if (data.success) {
+            console.log("Shopping list successfully updated!");
+            return true;
+        } else {
+            console.error("Request failed:", response.status);
+        }
+    }
+    catch (error) {
+        console.error("Error sending shopping list")
+    }
+}
 
+const requestDeleteFromShoppingList = async (ingredient_id) => {
+    try {
+        const response = await fetch('/remove_shopping_item', {
+            method: "POST",
+            body: JSON.stringify({
+                ingredient_id: ingredient_id.slice(1),
+            }),
+            headers: {
+                "Content-Type": "application/json"
+            },
+            redirect: "manual"
+        })
+
+        
+        const data = await response.json()
+        
+        if (data.success) {
+            console.log(`Shopping list successfully updated. ID = ${ingredient_id} was deleted`);
+            return true;
+        } else {
+            console.error("Request failed:", response.status);
+        }
+    }
+    catch (error) {
+        console.error("Error sending shopping list")
+    }
+}
 
 const closeDeleteModal = ()=>{
     confirmModal.querySelector("#confirm-deletion").removeEventListener("click", thisDeleteEventListener)
@@ -173,7 +236,6 @@ allRows.forEach((tr)=>{
     tr.querySelector('.delete-button-background').addEventListener("click", activateDeleteModal(ingredient_id))
 })
 
-
 const toggles = document.querySelectorAll('.toggle');
 
 toggles.forEach((toggle)=>{
@@ -183,6 +245,21 @@ toggles.forEach((toggle)=>{
 allRows.forEach((row)=>{
 
     const ingredient_id = row.id;
+
+    // event handlers for the toggles
+    const clickable = row.querySelector(".check-detect-click")
+    clickable.addEventListener("click", ()=>{
+        if (clickable.querySelector('svg')) {
+            requestDeleteFromShoppingList(ingredient_id);
+            whiteToGrey(clickable);
+        }
+        else if (clickable.querySelector('.grey-outline')) {
+            requestAddToShoppingList(ingredient_id);
+            greyToWhite(clickable);
+        }
+    })
+    
+    
     row.querySelector('.toggle').addEventListener("click", async (event)=>{
         event.preventDefault();
         try {
@@ -236,23 +313,21 @@ createSubmit.addEventListener("click", async (event)=>{
     
     event.preventDefault();
 
-    const new_name = createItemModal.querySelector("input[type=text]").value;
-    const add_shopping_list = createItemModal.querySelector("#add-to-shopping-list").checked;
-    const in_inventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
+    const newName = createItemModal.querySelector("input[type=text]").value;
+    const addShoppingList = createItemModal.querySelector("#add-to-shopping-list").checked;
+    const inInventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
     try {
         const response = await fetch("/inventory/create", {
             method:"POST",
             body: JSON.stringify({
-                "ingredient_name":new_name,
-                "add_shopping_list":add_shopping_list,
-                "in_inventory":in_inventory
+                "ingredient_name":newName,
+                "in_inventory":inInventory
             }),
             headers: {
                 "Content-Type":"application/json",
             },
             redirect: "manual"
         })
-
         
         data = await response.json()
 
@@ -263,17 +338,31 @@ createSubmit.addEventListener("click", async (event)=>{
             console.error("Request failed:", response.status);
         }
 
-        console.log("\"data\": success:", data.success);
+        console.log("\"data\".success:", data.success);
 
         if(data.success) {
+            let shoppingResponse = true;
+
+            const new_id = data.new_id
+
+            if(addShoppingList) {
+                shoppingResponse = await requestAddToShoppingList(`_${new_id}`);
+            }
             
-            createNewTableRow(data.new_id, new_name, add_shopping_list, in_inventory);
+            console.log("shopping list update OK for " + new_id + "?", shoppingResponse)
+            if (shoppingResponse) {
+                createNewTableRow(new_id, newName, addShoppingList, inInventory);
+                
+                modalBackdrop.style.visibility = "hidden";
+                createItemModal.style.visibility = "hidden";
             
-            modalBackdrop.style.visibility = "hidden";
-            createItemModal.style.visibility = "hidden";
-        
-            createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
-            createItemModal.querySelector("input[type=text]").value = "";
+                createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
+                createItemModal.querySelector("input[type=text]").value = "";
+            }
+            else {
+                console.log(shoppingResponseData);
+            }
+                
         }
         else {
             console.log(data.message);
@@ -301,14 +390,3 @@ function greyToWhite(clicked) {
 
 
 
-document.querySelectorAll(".on-shopping-list").forEach((td)=>{
-    const clickable = td.querySelector(".check-detect-click")
-        clickable.addEventListener("click", ()=>{
-            if (clickable.querySelector('svg')) {
-                whiteToGrey(clickable);
-            }
-            else if (clickable.querySelector('.grey-outline')) {
-                greyToWhite(clickable);
-            }
-    })
-})

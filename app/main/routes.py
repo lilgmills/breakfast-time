@@ -355,10 +355,17 @@ def add_to_shopping_list():
     
     fieldnames = ["ingredient_id"]
     
-    for ingredient_id in new_shopping_items:
-        if ingredient_id not in shopping_list:
-            record = {"ingredient_id": ingredient_id}
-            append_csv_file("shopping_list.csv", fieldnames, record)
+    try: 
+        for ingredient_id in new_shopping_items:
+            if ingredient_id not in shopping_list:
+                record = {"ingredient_id": ingredient_id}
+                append_csv_file("shopping_list.csv", fieldnames, record)
+    except: 
+        return jsonify({
+            "success":False,
+            "message": "Error updating shopping list."
+        }), 200
+        
     
     
     return jsonify({
@@ -370,6 +377,7 @@ def add_to_shopping_list():
 @main.route('/remove_shopping_item', methods=['POST'])
 def remove_from_shopping_list():
     data = request.get_json()
+    # "" is the default value for getting ingredient_id
     remove_shopping_item_id = data.get("ingredient_id", "")
     
     shopping_list = [row["ingredient_id"] for row in load_csv_data("shopping_list.csv")]
