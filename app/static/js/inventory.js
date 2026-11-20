@@ -7,11 +7,7 @@ const modalCreateItem = document.querySelector('#modal-create-inventory-item');
 const cachedSVGClone = document.querySelector("svg");
 cachedSVGClone.style.visibility = "hidden";
 
-
-
 function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
-    
-    
     // create the p tag for the ingredient name
     const nameText = document.createElement('p');
     nameText.textContent = new_name;
@@ -25,27 +21,30 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     tableRow.className = "ingredient-inventory-display"
     tableRow.append(classIngredName);
 
-    const greyCircle = document.createElement("div");
-    greyCircle.className = "grey-outline";
+    let shoppingStateElement;
+    // append the shopping_list element
+
+    
+    if(add_shopping_list) {
+        shoppingStateElement = cachedSVGClone.cloneNode(true);
+        shoppingStateElement.style.visibility = "visible";
+    }
+    else {
+        shoppingStateElement = document.createElement("div");
+        shoppingStateElement.className = "grey-outline";
+    }
+    
+    const checkDetectClick = document.createElement('div');
+    checkDetectClick.className = "check-detect-click"
+    checkDetectClick.append(shoppingStateElement)
+    checkDetectClick.addEventListener("click", (event)=>toggleShoppingCheckmark(event));
+    
 
     const blueCheckBackground = document.createElement("div");
-    blueCheckBackground.className = "blue-check-background grey";
+    blueCheckBackground.className = "blue-check-background";
     blueCheckBackground.style="display:flex;justify-content:space-around;"
 
-    blueCheckBackground.append(greyCircle);
-
-
-    blueCheckBackground.addEventListener("click", ()=>{
-        if (blueCheckBackground.classList.contains("white")) {
-            whiteToGrey(blueCheckBackground);
-        }
-        else if (blueCheckBackground.classList.contains("grey")) {
-            greyToWhite(blueCheckBackground);
-        }
-    })
-
-    
-    
+    blueCheckBackground.append(checkDetectClick);    
     
     const onShoppingList = document.createElement('td');
     onShoppingList.className = "on-shopping-list"
@@ -67,13 +66,24 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     
     const cloneDeleteButton = SVGdelete.cloneNode(deep=true);
     cloneDeleteButton.querySelector('.delete-button-background')
-        .addEventListener("click", (event)=>activateDeleteModal(event, tableRow.id));
+        .addEventListener("click", ()=>activateDeleteModal(tableRow.id));
     
     
     tableRow.append(cloneDeleteButton)
 
     document.querySelector('tbody').append(tableRow)
 
+}
+
+function toggleShoppingCheckmark(event) {
+    if (event.target.querySelector('.check-blue-svg')) {
+        whiteToGrey(event.target);
+    }
+    else if (event.target.querySelector('.grey-outline')) {
+        greyToWhite(event.target);
+    }
+
+    console.log(event.target)
 }
 
 function toggleInInventory(event) {
@@ -88,6 +98,7 @@ function toggleInInventory(event) {
     }
 }
 
+// send request item deletion the formatted id (id=_41)
 const requestItemDeletion = async (ingredient_id) => {
     try {
         const response = await fetch(`/inventory/delete/${ingredient_id.slice(1)}`);
@@ -96,47 +107,84 @@ const requestItemDeletion = async (ingredient_id) => {
         return data
     }
     catch(error) {
-        console.error("There was an error with deleting item " + ingredient_id);
+        console.error(`${error}\nThere was an error with deleting item ${ingredient_id}`);
     }
 }
 
+
+    const temporaryDeleteListener = (id_delete) => {
+        return async function parameterizedTemporaryEventHandler(){
+            
+            const deleteResult = await requestItemDeletion(id_delete)
+            
+            console.log(deleteResult)
+            
+            if(deleteResult.success) {
+                closeDeleteModal();
+                document.querySelector(`#${id_delete}`)?.remove();
+            }
+        }
+    }
+
+    const closeDeleteModal = ()=>{
+        confirmModal.removeEventListener("click", thisDeleteEventListener)
+        modalBackdrop.style.visibility = "hidden";
+        confirmModal.style.visibility = "hidden";
+    }
+
+
+modalBackdrop.addEventListener("click", (event)=>{
+    if(!confirmModal.contains(event.target)) {
+        closeDeleteModal()
+    }
+})
 const activateDeleteModal = async (event, ingredient_id) => {
     modalBackdrop.style.visibility = "visible";
     confirmModal.style.visibility = "visible";
     modalCreateItem.style.visibility = "hidden";
 
-    // event listeners for the delete modal buttons are created
-    confirmModal.querySelector('#cancel-deletion').addEventListener("click", ()=>{
+
+    const temporaryDeleteListener = (id_delete) => {
+        return async () => {
+            
+            const deleteResult = await requestItemDeletion(id_delete)
+            
+            console.log("deleteResult:", deleteResult)
+            
+            if(deleteResult.success) {
+                closeDeleteModal();
+                document.querySelector(`#${id_delete}`)?.remove();
+            }
+        }
+    }
+
+    // create an event handler for the delete confirmation
+    // the id is not an argument of the actual event handler
+    // temporaryDeleteListener creates an event handler
+    // with a parameter ingredient_id, that we then save a reference to.
+    //  It is removed when the modal closes
+    thisDeleteEventListener = temporaryDeleteListener(ingredient_id)
+
+    const closeDeleteModal = ()=>{
+        confirmModal.querySelector("#confirm-deletion").removeEventListener("click", thisDeleteEventListener)
         modalBackdrop.style.visibility = "hidden";
         confirmModal.style.visibility = "hidden";
-    }) 
+    }    
 
-    confirmModal.querySelector('#confirm-deletion').addEventListener("click", async ()=>{
-        const deleteResult = await requestItemDeletion(ingredient_id)
-        console.log(deleteResult)
-        
-        if(deleteResult.success) {
-            modalBackdrop.style.visibility = "hidden";
-            confirmModal.style.visibility = "hidden";
-            document.querySelector(`#${ingredient_id}`)?.remove();
-        }        
-    })
+    confirmModal.querySelector("#confirm-deletion")
+        .addEventListener("click", thisDeleteEventListener);
+       
+    // other event listeners for the delete modal buttons are created
+    confirmModal.querySelector('#cancel-deletion')
+        .addEventListener("click", closeDeleteModal);
+
     
-
-
-    modalBackdrop.addEventListener("click", (event)=>{
-        if(!confirmModal.contains(event.target)) {
-            modalBackdrop.style.visibility = "hidden";
-            confirmModal.style.visibility = "hidden";
-        }
-    })
 }
 
 
     
 
 allRows.forEach((tr)=>{
-
     const ingredient_id = tr.id;
     tr.querySelector('.delete-button-background').addEventListener("click", (event)=>activateDeleteModal(event, ingredient_id))
 })
@@ -150,11 +198,11 @@ toggles.forEach((toggle)=>{
 
 allRows.forEach((row)=>{
 
-    const ingredient_id = row.id.slice(1);
+    const ingredient_id = row.id;
     row.querySelector('.toggle').addEventListener("click", async (event)=>{
         event.preventDefault();
         try {
-            const response = await fetch(`/inventory/${ingredient_id}`, {
+            const response = await fetch(`/inventory/${ingredient_id.slice(1)}`, {
                 method:"POST",
                 headers: {
                     "Content-Length": 0,
@@ -170,10 +218,6 @@ allRows.forEach((row)=>{
         } catch (error) {
             console.error("Error updating inventory");
         }
-
-        
-            
-        
     })
 })
 
@@ -209,7 +253,7 @@ createSubmit.addEventListener("click", async (event)=>{
     event.preventDefault();
 
     const new_name = createItemModal.querySelector("input[type=text]").value;
-    const add_shopping_list = createItemModal.querySelector("#add-to-shopping-list").checked ? "1" : "0";
+    const add_shopping_list = createItemModal.querySelector("#add-to-shopping-list").checked;
     const in_inventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
     try {
         const response = await fetch("/inventory/create", {
@@ -235,13 +279,12 @@ createSubmit.addEventListener("click", async (event)=>{
             console.error("Request failed:", response.status);
         }
 
-        console.log(data.success);
+        console.log("\"data\": success:", data.success);
 
         if(data.success) {
             
             createNewTableRow(data.new_id, new_name, add_shopping_list, in_inventory);
             
-            console.log("The error is not with createNewTableRow()")
             modalBackdrop.style.visibility = "hidden";
             createItemModal.style.visibility = "hidden";
         
@@ -258,17 +301,14 @@ createSubmit.addEventListener("click", async (event)=>{
 })
 
 const whiteToGrey = (clicked) => {
-    // console.log("Yup!")
-    clicked.classList.replace("white", "grey")
-    blueCheck = clicked.querySelector('.check-blue-svg');
-    blueCheck.remove();
+    clicked.querySelector('.check-blue-svg').remove();
     const greyCircle = document.createElement("div");
     greyCircle.className = "grey-outline";
     clicked.append(greyCircle);    
 }
 
 function greyToWhite(clicked) {
-    clicked.classList.replace("grey", "white")
+    console.log("Grey button. Clicked; it's true")
     clicked.querySelector('.grey-outline').remove();
     const checkBlueSVG = cachedSVGClone.cloneNode(true);
     checkBlueSVG.style.visibility = "visible";
@@ -278,15 +318,13 @@ function greyToWhite(clicked) {
 
 
 document.querySelectorAll(".on-shopping-list").forEach((td)=>{
-    const clickable = td.querySelector(".blue-check-background")
+    const clickable = td.querySelector(".check-detect-click")
         clickable.addEventListener("click", ()=>{
-            
-            if (clickable.classList.contains("white")) {
-                
-                whiteToGrey(clickable)
+            if (clickable.querySelector('svg')) {
+                whiteToGrey(clickable);
             }
-            else if (clickable.classList.contains("grey")) {
-                greyToWhite(clickable)
+            else if (clickable.querySelector('.grey-outline')) {
+                greyToWhite(clickable);
             }
     })
 })

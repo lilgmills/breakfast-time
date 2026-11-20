@@ -1,6 +1,4 @@
 breakfast_id,ingredient_id,optional_group
-0,0,
-0,1,0
 0,2,0
 0,3,0
 0,29,0
@@ -9,8 +7,6 @@ breakfast_id,ingredient_id,optional_group
 0,5,
 1,8,
 1,7,
-1,9,
-1,10,
 1,11,0
 1,12,0
 1,13,0
@@ -19,10 +15,7 @@ breakfast_id,ingredient_id,optional_group
 2,18,
 3,19,
 3,20,
-3,21,
 4,23,
-4,21,0
-4,22,0
 4,8,
 5,8,
 5,24,
@@ -31,12 +24,9 @@ breakfast_id,ingredient_id,optional_group
 5,23,
 5,11,
 6,27,
-6,10,0
-6,9,0
 6,40,0
 6,41,0
 6,25,0
-6,21,
 7,28,0
 7,42,0
 7,43,0
@@ -48,8 +38,6 @@ breakfast_id,ingredient_id,optional_group
 7,7,
 7,33,
 8,34,
-8,0,
-8,1,0
 8,2,0
 8,3,0
 9,24,
@@ -58,9 +46,9 @@ breakfast_id,ingredient_id,optional_group
 9,12,0
 9,7,
 9,26,
+10,6,
 10,28,
 10,35,
-10,1,0
 10,2,0
 10,3,0
 10,4,0
@@ -85,5 +73,3 @@ breakfast_id,ingredient_id,optional_group
 13,11,0
 13,12,0
 13,13,0
-13,10,1
-13,9,1

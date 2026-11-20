@@ -42,15 +42,15 @@
                 <p>{{ ingredient.ingredient_name }}</p>
             </td>
             <td class="on-shopping-list">
-                {% if ingredient.on_shopping_list %}
-                <div class="blue-check-background white" style="display:flex;justify-content:space-around;">
-                    {% include "check_blue.svg" %}
-                </div>
-                {% else %}
-                <div class="blue-check-background grey" style="display:flex;justify-content:space-around;">
-                    <div class="grey-outline"></div>
-                </div>
-                {% endif %}
+                <div class="blue-check-background" style="display:flex;justify-content:space-around;">
+                    <div class="check-detect-click">
+                        {% if ingredient.on_shopping_list %}
+                            {% include "check_blue.svg" %}
+                        {% else %}
+                            <div class="grey-outline"></div>
+                        {% endif %}
+                    </div>
+                    
             </td>
             <td class="ingredient-in-inventory">
                 {% if ingredient.in_inventory %}
