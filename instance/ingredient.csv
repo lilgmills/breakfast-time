@@ -1,11 +1,15 @@
 ingredient_id,ingredient_name,in_inventory
+0,Greek yogurt,1
+1,strawberries,0
 2,blueberries,0
 3,blackberries,0
 4,apple,1
 5,granola,1
-6,chia seeds,0
+6,chia seeds,1
 7,spinach,1
 8,eggs,1
+9,mushrooms,1
+10,bell peppers,1
 11,cheddar cheese,1
 12,mozzarella cheese,1
 13,swiss cheese,0
@@ -16,6 +20,8 @@ ingredient_id,ingredient_name,in_inventory
 18,walnuts,1
 19,peanut butter,1
 20,banana,1
+21,whole-grain bread,1
+22,white bread,1
 23,avocado,1
 24,tortillas,1
 25,black beans,1
@@ -37,4 +43,3 @@ ingredient_id,ingredient_name,in_inventory
 41,frozen broccoli,1
 42,2% milk,1
 43,oat milk,1
-44,it fiexed?,0

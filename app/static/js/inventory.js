@@ -66,7 +66,7 @@ function createNewTableRow(new_id, new_name, add_shopping_list, in_inventory) {
     
     const cloneDeleteButton = SVGdelete.cloneNode(deep=true);
     cloneDeleteButton.querySelector('.delete-button-background')
-        .addEventListener("click", ()=>activateDeleteModal(tableRow.id));
+        .addEventListener("click", activateDeleteModal(tableRow.id));
     
     
     tableRow.append(cloneDeleteButton)
@@ -98,6 +98,9 @@ function toggleInInventory(event) {
     }
 }
 
+
+
+
 // send request item deletion the formatted id (id=_41)
 const requestItemDeletion = async (ingredient_id) => {
     try {
@@ -112,81 +115,62 @@ const requestItemDeletion = async (ingredient_id) => {
 }
 
 
-    const temporaryDeleteListener = (id_delete) => {
-        return async function parameterizedTemporaryEventHandler(){
-            
-            const deleteResult = await requestItemDeletion(id_delete)
-            
-            console.log(deleteResult)
-            
-            if(deleteResult.success) {
-                closeDeleteModal();
-                document.querySelector(`#${id_delete}`)?.remove();
-            }
+ 
+
+
+const closeDeleteModal = ()=>{
+    confirmModal.querySelector("#confirm-deletion").removeEventListener("click", thisDeleteEventListener)
+    modalBackdrop.style.visibility = "hidden";
+    confirmModal.style.visibility = "hidden";
+}
+
+const temporaryDeleteListener = (id_delete) => {
+    return async () => {
+        
+        const deleteResult = await requestItemDeletion(id_delete)
+        
+        console.log("deleteResult:", deleteResult)
+        
+        if(deleteResult.success) {
+            closeDeleteModal();
+            document.querySelector(`#${id_delete}`)?.remove();
         }
     }
+}
+// create an event handler for the delete confirmation
+// the id is not an argument of the actual event handler
+// temporaryDeleteListener creates an event handler
+// with a parameter ingredient_id, that we then save a reference to.
+//  It is removed when the modal closes
+let thisDeleteEventListener; 
 
-    const closeDeleteModal = ()=>{
-        confirmModal.removeEventListener("click", thisDeleteEventListener)
-        modalBackdrop.style.visibility = "hidden";
-        confirmModal.style.visibility = "hidden";
+function activateDeleteModal(ingredient_id){
+    return async ()=> {
+        console.log("delete modal activated for ID=" + ingredient_id);
+        modalBackdrop.style.visibility = "visible";
+        confirmModal.style.visibility = "visible";
+        modalCreateItem.style.visibility = "hidden";
+
+        thisDeleteEventListener = temporaryDeleteListener(ingredient_id);
+
+        confirmModal.querySelector("#confirm-deletion")
+            .addEventListener("click", thisDeleteEventListener);
+        
+        // other event listeners for the delete modal buttons are created
+        confirmModal.querySelector('#cancel-deletion')
+            .addEventListener("click", closeDeleteModal);
     }
-
+}
 
 modalBackdrop.addEventListener("click", (event)=>{
     if(!confirmModal.contains(event.target)) {
         closeDeleteModal()
     }
 })
-const activateDeleteModal = async (event, ingredient_id) => {
-    modalBackdrop.style.visibility = "visible";
-    confirmModal.style.visibility = "visible";
-    modalCreateItem.style.visibility = "hidden";
-
-
-    const temporaryDeleteListener = (id_delete) => {
-        return async () => {
-            
-            const deleteResult = await requestItemDeletion(id_delete)
-            
-            console.log("deleteResult:", deleteResult)
-            
-            if(deleteResult.success) {
-                closeDeleteModal();
-                document.querySelector(`#${id_delete}`)?.remove();
-            }
-        }
-    }
-
-    // create an event handler for the delete confirmation
-    // the id is not an argument of the actual event handler
-    // temporaryDeleteListener creates an event handler
-    // with a parameter ingredient_id, that we then save a reference to.
-    //  It is removed when the modal closes
-    thisDeleteEventListener = temporaryDeleteListener(ingredient_id)
-
-    const closeDeleteModal = ()=>{
-        confirmModal.querySelector("#confirm-deletion").removeEventListener("click", thisDeleteEventListener)
-        modalBackdrop.style.visibility = "hidden";
-        confirmModal.style.visibility = "hidden";
-    }    
-
-    confirmModal.querySelector("#confirm-deletion")
-        .addEventListener("click", thisDeleteEventListener);
-       
-    // other event listeners for the delete modal buttons are created
-    confirmModal.querySelector('#cancel-deletion')
-        .addEventListener("click", closeDeleteModal);
-
-    
-}
-
-
-    
 
 allRows.forEach((tr)=>{
     const ingredient_id = tr.id;
-    tr.querySelector('.delete-button-background').addEventListener("click", (event)=>activateDeleteModal(event, ingredient_id))
+    tr.querySelector('.delete-button-background').addEventListener("click", activateDeleteModal(ingredient_id))
 })
 
 
