@@ -136,6 +136,7 @@ const requestAddToShoppingList = async (ingredient_id) => {
 
         
         const data = await response.json()
+        data.success = false;
         
         if (data.success) {
             console.log("Shopping list successfully updated!");
@@ -351,9 +352,7 @@ createSubmit.addEventListener("click", async (event)=>{
         populateErrorMessageForItemCreation(errorMessage);
         return;
     }
-
-    
-    
+  
     try {
         const response = await fetch("/inventory/create", {
             method:"POST",
@@ -398,7 +397,7 @@ createSubmit.addEventListener("click", async (event)=>{
                 createItemModal.querySelector("input[type=text]").value = "";
             }
             else {
-                console.log(shoppingResponseData);
+                console.log(shoppingResponse);
             }
                 
         }
