@@ -96,6 +96,7 @@ h1 {
     font-size: 6em;
     margin: 0;
     padding-top: 18px;
+    padding-left: 12px;
 }
 
 .complete-and-missing-header {
@@ -606,3 +607,29 @@ h1 {
     width: 101%;
 }
 
+
+
+#popup-notification-slide-dashboard {
+    position: fixed;
+    display: flex;
+    width:100vw;
+    justify-content: space-around;
+    font-size: 3em;
+    font-style: italic;
+    color: rgb(231, 231, 231);
+    -webkit-text-stroke: 4px black;
+    paint-order: stroke fill;
+
+    transition: opacity 1.2s ease-out,
+        bottom 1.2s ease-out;
+}
+
+#popup-notification-slide-dashboard.inactive {
+    bottom: -256px;
+    opacity: 0;
+}
+
+#popup-notification-slide-dashboard.active {
+    bottom: 324px;
+    opacity: 1;
+}

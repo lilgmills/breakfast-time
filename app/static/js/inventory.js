@@ -143,10 +143,12 @@ const requestAddToShoppingList = async (ingredient_id) => {
             return true;
         } else {
             console.error("Request failed:", response.status);
+            return false;
         }
     }
     catch (error) {
-        console.error("Error sending shopping list")
+        console.error("Error sending shopping list");
+        return false;
     }
 }
 
@@ -327,7 +329,7 @@ function populateErrorMessageForItemCreation(errorMessage) {
 }
 
 createSubmit.addEventListener("click", async (event)=>{
-
+    // You need to refactor this, man.
     const newName = createItemModal.querySelector("input[type=text]").value.trim();
     const addShoppingList = createItemModal.querySelector("#add-to-shopping-list").checked;
     const inInventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
@@ -383,7 +385,7 @@ createSubmit.addEventListener("click", async (event)=>{
             const new_id = data.new_id
 
             if(addShoppingList) {
-                shoppingResponse = await requestAddToShoppingList(`_${new_id}`);
+                shoppingResponse = requestAddToShoppingList(`_${new_id}`);
             }
             
             console.log("shopping list update OK for " + new_id + "?", shoppingResponse)
@@ -395,6 +397,22 @@ createSubmit.addEventListener("click", async (event)=>{
             
                 createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
                 createItemModal.querySelector("input[type=text]").value = "";
+
+                const popupNotificationDashboard = document.querySelector("#popup-notification-slide-dashboard")
+                popupNotificationDashboard.classList.replace("inactive", "active")
+
+                const notifText = popupNotificationDashboard.querySelector('#popup-notification')
+                notifText.textContent = "Ingredient was successfully created";
+                setTimeout(()=>{
+                    popupNotificationDashboard.classList.replace("active", "inactive")
+                    setTimeout(()=>{
+                        notifText.textContent = "";
+                    }, 2000)
+
+                }, 4000)
+
+                // this should belong to a reset() function
+                createItemModal.querySelector("#input-error-feedback").textContent = "";
             }
             else {
                 console.log(shoppingResponse);
