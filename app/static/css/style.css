@@ -614,10 +614,10 @@ h1 {
     display: flex;
     width:100vw;
     justify-content: space-around;
-    font-size: 3em;
+    font-size: 2em;
     font-style: italic;
-    color: rgb(231, 231, 231);
-    -webkit-text-stroke: 4px black;
+    color: rgb(223, 221, 221);
+    -webkit-text-stroke: 3px rgb(94, 89, 95);
     paint-order: stroke fill;
 
     transition: opacity 1.2s ease-out,

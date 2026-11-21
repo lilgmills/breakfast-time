@@ -136,7 +136,7 @@ const requestAddToShoppingList = async (ingredient_id) => {
 
         
         const data = await response.json()
-        data.success = false;
+        
         
         if (data.success) {
             console.log("Shopping list successfully updated!");
@@ -380,13 +380,10 @@ createSubmit.addEventListener("click", async (event)=>{
         console.log("\"data\".success:", data.success);
 
         if(data.success) {
-            let shoppingResponse = true;
+            
 
-            const new_id = data.new_id
-
-            if(addShoppingList) {
-                shoppingResponse = requestAddToShoppingList(`_${new_id}`);
-            }
+            const new_id = data.new_id;
+            let shoppingResponse = addShoppingList ? await requestAddToShoppingList(`_${new_id}`) : true;
             
             console.log("shopping list update OK for " + new_id + "?", shoppingResponse)
             if (shoppingResponse) {
@@ -409,7 +406,7 @@ createSubmit.addEventListener("click", async (event)=>{
                         notifText.textContent = "";
                     }, 2000)
 
-                }, 4000)
+                }, 3000)
 
                 // this should belong to a reset() function
                 createItemModal.querySelector("#input-error-feedback").textContent = "";
