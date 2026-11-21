@@ -187,7 +187,19 @@ def inventory():
     
     return render_template("inventory.html", **{"ingredients":ingredients_with_shopping_flag})
 
-@main.route("/inventory/<ingredient_id>", methods=['POST'])
+@main.route("/inventory/duplicates", methods=["POST"])
+def check_for_duplicates():
+    ingredients = load_csv_data("ingredient.csv")
+    new_name = request.get_json()["name"]
+    
+    for ingredient in ingredients:
+        if new_name == ingredient["ingredient_name"]:
+            return {"valid": False}
+    return {"valid": True}
+
+
+# toggle an ingredient's in_inventory value
+@main.route("/inventory/<ingredient_id>")
 def toggle_inventory(ingredient_id):
     ingredients = load_csv_data("ingredient.csv")
         
@@ -225,19 +237,18 @@ def create_new_ingredient():
         ingredient["ingredient_id"] : ingredient for ingredient in ingredients
     }
     
+    
+    #check for null is already done on the client side:
+    #check for duplicate name is done server side
+    
     #check if name is already in the ingredients list
-    #only checks for exact duplicates, non-case sensitive
+    #non-case sensitive
     
     
     new_name = html.escape(request.get_json()["ingredient_name"])
     
     new_name_not_case_sens = new_name.lower().strip()
     
-    if new_name_not_case_sens == "":
-        return jsonify({
-                        "success":False,
-                        "message":"User submitted an empty string"
-                        }), 200
     auto_increment = 0
     
     for ingredient in ingredients:

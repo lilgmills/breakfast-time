@@ -96,10 +96,17 @@
         <div>
             <h2>Add new ingredient</h2>
         </div>
-        <div>
-            <label for="ingredient-name-input">Ingredient name</label>
-            <input type="text" id="ingredient-name-input">
+        <div class="ingredient-input-panel">
+            <div>
+                <label for="ingredient-name-input">Ingredient name</label>
+                <input type="text" id="ingredient-name-input">
+            </div>
+            <div class="flexbox-centering" style="display:flex;justify-content: center;color:rgb(255, 196, 0)">
+                <div id="input-error-feedback" style="visibility:hidden;">Error text feedback</div>
+            </div>
+            
         </div>
+        
         <div>
             <label for="add-to-shopping-list">Add this ingredient to shopping list?<input type="checkbox" id="add-to-shopping-list"></label>
 

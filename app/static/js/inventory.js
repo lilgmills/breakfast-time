@@ -108,10 +108,6 @@ function toggleInInventory(event) {
         toggle.textContent = "Yes";
     }
 }
-
-
-
-
 // send request item deletion the formatted id (id=_41)
 const requestItemDeletion = async (ingredient_id) => {
     try {
@@ -263,12 +259,7 @@ allRows.forEach((row)=>{
     row.querySelector('.toggle').addEventListener("click", async (event)=>{
         event.preventDefault();
         try {
-            const response = await fetch(`/inventory/${ingredient_id.slice(1)}`, {
-                method:"POST",
-                headers: {
-                    "Content-Length": 0,
-                },
-                redirect:"manual"})
+            const response = await fetch(`/inventory/${ingredient_id.slice(1)}`);
             if(response.ok) {
                 console.log("Inventory updated successfully.")
             }
@@ -309,13 +300,60 @@ addItemToInventoryButton.addEventListener("click", (event)=>{
     })
 })
 
-createSubmit.addEventListener("click", async (event)=>{
-    
-    event.preventDefault();
 
-    const newName = createItemModal.querySelector("input[type=text]").value;
+async function checkForDuplicatesOK(ingredientName) {
+    const response = await fetch("inventory/duplicates", {
+        method: "POST",
+        body: JSON.stringify({
+            "name": ingredientName,
+        }),
+        headers: {
+            "Content-Type":"application/json",
+        }
+    })
+    const data = await response.json()
+    return data.valid;
+}
+
+function populateErrorMessageForItemCreation(errorMessage) {
+    const errorFeedback = document.querySelector("#input-error-feedback");
+    errorFeedback.style.visibility = "visible";
+    errorFeedback.textContent = errorMessage;
+    setInterval(()=>{
+        errorFeedback.textContent = "";
+        errorFeedback.style.visibility = "hidden";
+    },15000)
+}
+
+createSubmit.addEventListener("click", async (event)=>{
+
+    const newName = createItemModal.querySelector("input[type=text]").value.trim();
     const addShoppingList = createItemModal.querySelector("#add-to-shopping-list").checked;
     const inInventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
+    
+    if(newName === "") {
+        const errorMessage = "Please enter a name for the ingredient"
+        populateErrorMessageForItemCreation(errorMessage)
+        return;
+    }
+    let duplicatesOK = false;
+    try {
+        // returns true if no duplicates are found
+        duplicatesOK = await checkForDuplicatesOK(newName);
+    }
+    catch {
+        console.log("There was an error while checking for duplicates")
+    }
+
+    if(!duplicatesOK) {
+        console.log("User entered a duplicate item.")
+        const errorMessage = "There is already an ingredient with this name"
+        populateErrorMessageForItemCreation(errorMessage);
+        return;
+    }
+
+    
+    
     try {
         const response = await fetch("/inventory/create", {
             method:"POST",
