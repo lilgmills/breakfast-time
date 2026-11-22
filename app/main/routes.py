@@ -413,3 +413,35 @@ def remove_from_shopping_list():
             response["message"] = "There was an error trying to delete item {}".format(remove_shopping_item_id)
     
     return jsonify(response), 200
+
+# Returns the names of breakfasts that use a particular ingredient
+@main.route("/ingredients/from/<ingredient_id>")
+def get_recipes_that_use(ingredient_id):
+    def select_breakfast_ingredients_by_ingredient(id):
+        breakfast_ingredients = load_csv_data("breakfast_ingredient.csv")
+        return [breakfast_ingredient for breakfast_ingredient in breakfast_ingredients if breakfast_ingredient["ingredient_id"]==id]
+    
+    select_breakfasts = select_breakfast_ingredients_by_ingredient(ingredient_id)
+    
+    def make_breakfast_lookup_by_id():
+        breakfasts = load_csv_data("breakfast.csv")
+        return {breakfast["breakfast_id"] : breakfast for breakfast in breakfasts}
+    
+    breakfast_lookup = make_breakfast_lookup_by_id()
+    
+    required_breakfasts = []
+    optional_breakfasts = []
+    
+    for breakfast_ingredient in select_breakfasts:
+        breakfast = breakfast_lookup[breakfast_ingredient["breakfast_id"]]
+        if breakfast_ingredient["optional_group"]:
+            optional_breakfasts.append(breakfast)
+        else:
+            required_breakfasts.append(breakfast)           
+    
+    
+    return jsonify({
+        "success": True,
+        "breakfasts": 
+            {"required_for": required_breakfasts,
+             "optional_for": optional_breakfasts}}), 200

@@ -207,15 +207,76 @@ const temporaryDeleteListener = (id_delete, deletedName) => {
 //  It is removed when the modal closes
 let thisDeleteEventListener; 
 
+
+const createRecipeWarning = async (ingredient_id)=> {
+    const deletedName = document.querySelector(`#${ingredient_id} > .ingredient-name > p`).textContent;
+        
+    let deleteWarning = [`You are about to delete "${deletedName}" permanently from the inventory.`]
+        
+    try { 
+        // this returns a list of names of recipes that use the ingredient
+        const deleteIngredientsFromThese = await fetch(`ingredients/from/${ingredient_id.slice(1)}`)
+        responseData = await deleteIngredientsFromThese.json();
+        reqList = responseData.breakfasts.required_for
+        optList = responseData.breakfasts.optional_for
+        console.log("Required for " + String(reqList.length), responseData.breakfasts.required_for)
+        console.log("Optional for " + String(optList.length), responseData.breakfasts.optional_for)
+        
+        if(reqList.length > 0) {
+            deleteWarning.push(`"${deletedName}" is required for these recipes:`)
+            for(let recipe of reqList) {
+                deleteWarning.push(`- ${recipe.breakfast_name}`)
+            }
+        }
+        if(optList.length > 0) {
+            deleteWarning.push(`"${deletedName}" is optional for these recipes:`)
+            for(let recipe of optList) {
+                deleteWarning.push(`- ${recipe.breakfast_name}`)
+            }
+        }
+        if(reqList == 0 && optList == 0) {
+            deleteWarning.push("This ingredient is not used in any recipes.")
+        }
+        
+    }
+    catch(error) {
+        console.error(error);
+        // in this case, use the default warning message
+        // list of lines, for formatting
+        defaultIngredientDeleteWarning = "Are you sure you want to proceed?";
+        deleteWarning.push(defaultIngredientDeleteWarning);
+        return deleteWarning;
+    }
+
+    return deleteWarning;
+}
+
 function activateDeleteModal(ingredient_id){
     return async ()=> {
         console.log("delete modal activated for ID=" + ingredient_id);
         modalBackdrop.style.visibility = "visible";
+
         confirmModal.style.visibility = "visible";
+        
+        function writeDeleteWarning(lineList) {
+            textContainer = confirmModal.querySelector("div")
+            if(lineList.length == 0) {
+                textContainer.innerHTML = "";
+            }
+            for(let line of lineList) {
+                const newLine = document.createElement("div");
+                newLine.textContent = line;
+                textContainer.append(newLine)
+            }
+        }
+        writeDeleteWarning([])
+
         modalCreateItem.style.visibility = "hidden";
 
+        const deleteWarning = await createRecipeWarning(ingredient_id);
+        writeDeleteWarning(deleteWarning);
+        
         const deletedName = document.querySelector(`#${ingredient_id} > .ingredient-name > p`).textContent;
-
         thisDeleteEventListener = temporaryDeleteListener(ingredient_id, deletedName);
 
         confirmModal.querySelector("#confirm-deletion")
