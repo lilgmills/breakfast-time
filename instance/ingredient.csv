@@ -1,9 +1,9 @@
 ingredient_id,ingredient_name,in_inventory
-0,Greek yogurt,0
+0,Greek yogurt,1
 1,strawberries,0
 2,blueberries,0
 3,blackberries,0
-4,apple,1
+4,apple,0
 5,granola,1
 6,chia seeds,1
 7,spinach,1

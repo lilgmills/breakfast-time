@@ -348,13 +348,16 @@ const createSubmit = createItemModal.querySelector('#create-item-submit')
 addItemToInventoryButton.addEventListener("click", (event)=>{
     modalBackdrop.style.visibility = "visible";
     createItemModal.style.visibility = "visible";
+    const textInput = createItemModal.querySelector("input[type=text]")
     modalBackdrop.addEventListener("click", (event)=>{
         if(!createItemModal.contains(event.target)) {
+            
+            // close the modal if the user clicks outside
             modalBackdrop.style.visibility = "hidden";
             createItemModal.style.visibility = "hidden";
             
             createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
-            createItemModal.querySelector("input[type=text]").value = "";
+            textInput.value = "";
         }
     })
 
@@ -365,6 +368,8 @@ addItemToInventoryButton.addEventListener("click", (event)=>{
         createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
         createItemModal.querySelector("input[type=text]").value = "";
     })
+
+    textInput.focus();
 })
 
 
@@ -392,15 +397,17 @@ function populateErrorMessageForItemCreation(errorMessage) {
     },15000)
 }
 
-createSubmit.addEventListener("click", async (event)=>{
+const newItemCreation = async (event)=>{
     // You need to refactor this, man.
     const newName = createItemModal.querySelector("input[type=text]").value.trim();
     const addShoppingList = createItemModal.querySelector("#add-to-shopping-list").checked;
     const inInventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
+    const textInputCreateItem = createItemModal.querySelector("input[type=text]")
     
     if(newName === "") {
         const errorMessage = "Please enter a name for the ingredient"
         populateErrorMessageForItemCreation(errorMessage)
+        textInputCreateItem.focus()
         return;
     }
     let duplicatesOK = false;
@@ -416,6 +423,7 @@ createSubmit.addEventListener("click", async (event)=>{
         console.log("User entered a duplicate item.")
         const errorMessage = "There is already an ingredient with this name"
         populateErrorMessageForItemCreation(errorMessage);
+        textInputCreateItem.focus()
         return;
     }
   
@@ -477,7 +485,15 @@ createSubmit.addEventListener("click", async (event)=>{
     catch(error) {
         console.error("Error creating new item.");
     }
+}
+
+createSubmit.addEventListener("click", async (event)=>{
+    await newItemCreation()
 })
+
+const textInputCreateItem = createItemModal.querySelector("input[type=text]")
+textInputCreateItem.addEventListener('keydown', async (event) => {if (event.key === 'Enter') await newItemCreation()})
+
 
 const whiteToGrey = (clicked) => {
     clicked.querySelector('.check-blue-svg').remove();
