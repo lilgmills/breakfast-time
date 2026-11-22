@@ -186,7 +186,7 @@ const closeDeleteModal = ()=>{
     confirmModal.style.visibility = "hidden";
 }
 
-const temporaryDeleteListener = (id_delete) => {
+const temporaryDeleteListener = (id_delete, deletedName) => {
     return async () => {
         
         const deleteResult = await requestItemDeletion(id_delete)
@@ -195,6 +195,7 @@ const temporaryDeleteListener = (id_delete) => {
         
         if(deleteResult.success) {
             closeDeleteModal();
+            confirmationPopUp(`${deletedName} was deleted`)
             document.querySelector(`#${id_delete}`)?.remove();
         }
     }
@@ -213,7 +214,9 @@ function activateDeleteModal(ingredient_id){
         confirmModal.style.visibility = "visible";
         modalCreateItem.style.visibility = "hidden";
 
-        thisDeleteEventListener = temporaryDeleteListener(ingredient_id);
+        const deletedName = document.querySelector(`#${ingredient_id} > .ingredient-name > p`).textContent;
+
+        thisDeleteEventListener = temporaryDeleteListener(ingredient_id, deletedName);
 
         confirmModal.querySelector("#confirm-deletion")
             .addEventListener("click", thisDeleteEventListener);
@@ -394,19 +397,9 @@ createSubmit.addEventListener("click", async (event)=>{
             
                 createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
                 createItemModal.querySelector("input[type=text]").value = "";
-
-                const popupNotificationDashboard = document.querySelector("#popup-notification-slide-dashboard")
-                popupNotificationDashboard.classList.replace("inactive", "active")
-
-                const notifText = popupNotificationDashboard.querySelector('#popup-notification')
-                notifText.textContent = "Ingredient was successfully created";
-                setTimeout(()=>{
-                    popupNotificationDashboard.classList.replace("active", "inactive")
-                    setTimeout(()=>{
-                        notifText.textContent = "";
-                    }, 2000)
-
-                }, 3000)
+                
+                const message = "Ingredient was successfully created"
+                confirmationPopUp(message)
 
                 // this should belong to a reset() function
                 createItemModal.querySelector("#input-error-feedback").textContent = "";
@@ -440,5 +433,18 @@ function greyToWhite(clicked) {
     clicked.append(checkBlueSVG);
 }
 
+function confirmationPopUp(message) {
+    const popupNotificationDashboard = document.querySelector("#popup-notification-slide-dashboard")
+    popupNotificationDashboard.classList.replace("inactive", "active")
 
+    const notifText = popupNotificationDashboard.querySelector('#popup-notification')
+    notifText.textContent = message;
+    setTimeout(()=>{
+        popupNotificationDashboard.classList.replace("active", "inactive")
+        setTimeout(()=>{
+            notifText.textContent = "";
+        }, 2000)
+
+    }, 3000)
+}
 
