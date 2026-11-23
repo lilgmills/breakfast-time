@@ -1,5 +1,6 @@
 const allChecks = document.querySelectorAll(".shopping-item");
 const addItemsButton = document.getElementById("add-items-to-list");
+import { confirmationPopUp } from "./confirmationPopup.js";
 
 allChecks.forEach((checkbox)=>{
     checkbox.addEventListener("change", ()=>{
@@ -55,12 +56,14 @@ addItemsButton.addEventListener('click', async (event) => {
 
         if (response.ok) {
             console.log("Shopping list successfully updated!");
+            confirmationPopUp("Shopping list successfully updated!");
+
         } else {
-            console.error("Request failed:", response.status);
+            console.error(error, "Request failed:", response.status);
         }
     }
     catch (error) {
-        console.error("Error sending shopping list")
+        console.error(error, "Error sending shopping list")
     }
         
 })

@@ -98,6 +98,12 @@
     <div id="add-items-to-list">
         <h2>Add These Items to Shopping List</h2>
     </div>
+
+    <div id="popup-notification-slide-dashboard" class="notification inactive">
+        <div id="popup-notification">Notification text goes here</div>
+    </div>
 {% endblock %}
 
-{% block script %}<script src="{{ url_for('static', filename='js/script.js') }}"></script>{% endblock %}
+{% block script %}
+<script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

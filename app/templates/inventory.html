@@ -135,4 +135,6 @@
 <div id="was-deleted" class="active"></div>
 {% endblock %}
 
-{% block script %}<script src="{{ url_for('static', filename='js/inventory.js') }}"></script>{% endblock %}
+{% block script %}
+<script type="module" src="{{ url_for('static', filename='js/inventory.js') }}"></script>
+{% endblock %}

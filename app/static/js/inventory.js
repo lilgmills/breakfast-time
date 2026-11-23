@@ -1,3 +1,5 @@
+import { confirmationPopUp } from './confirmationPopup.js'
+
 const allRows = document.querySelectorAll('tr.ingredient-inventory-display');
 const confirmModal = document.querySelector("#modal-are-you-sure");
 const modalBackdrop = document.querySelector('#modal-backdrop');
@@ -75,7 +77,7 @@ function createNewTableRow(new_id, newName, addShoppingList, inInventory) {
 
     const SVGdelete = document.querySelector('.delete-ingredient-from-inventory');
     
-    const cloneDeleteButton = SVGdelete.cloneNode(deep=true);
+    const cloneDeleteButton = SVGdelete.cloneNode(true);
     cloneDeleteButton.querySelector('.delete-button-background')
         .addEventListener("click", activateDeleteModal(tableRow.id));
     
@@ -112,7 +114,7 @@ function toggleInInventory(event) {
 const requestItemDeletion = async (ingredient_id) => {
     try {
         const response = await fetch(`/inventory/delete/${ingredient_id.slice(1)}`);
-        data = await response.json();
+        let data = await response.json();
     
         return data
     }
@@ -216,9 +218,9 @@ const createRecipeWarning = async (ingredient_id)=> {
     try { 
         // this returns a list of names of recipes that use the ingredient
         const deleteIngredientsFromThese = await fetch(`ingredients/from/${ingredient_id.slice(1)}`)
-        responseData = await deleteIngredientsFromThese.json();
-        reqList = responseData.breakfasts.required_for
-        optList = responseData.breakfasts.optional_for
+        let responseData = await deleteIngredientsFromThese.json();
+        let reqList = responseData.breakfasts.required_for
+        let optList = responseData.breakfasts.optional_for
         console.log("Required for " + String(reqList.length), responseData.breakfasts.required_for)
         console.log("Optional for " + String(optList.length), responseData.breakfasts.optional_for)
         
@@ -243,7 +245,7 @@ const createRecipeWarning = async (ingredient_id)=> {
         console.error(error);
         // in this case, use the default warning message
         // list of lines, for formatting
-        defaultIngredientDeleteWarning = "Are you sure you want to proceed?";
+        const defaultIngredientDeleteWarning = "Are you sure you want to proceed?";
         deleteWarning.push(defaultIngredientDeleteWarning);
         return deleteWarning;
     }
@@ -259,7 +261,7 @@ function activateDeleteModal(ingredient_id){
         confirmModal.style.visibility = "visible";
         
         function writeDeleteWarning(lineList) {
-            textContainer = confirmModal.querySelector("div")
+            const textContainer = confirmModal.querySelector("div")
             if(lineList.length == 0) {
                 textContainer.innerHTML = "";
             }
@@ -399,6 +401,7 @@ function populateErrorMessageForItemCreation(errorMessage) {
 
 const newItemCreation = async (event)=>{
     // You need to refactor this, man.
+    
     const newName = createItemModal.querySelector("input[type=text]").value.trim();
     const addShoppingList = createItemModal.querySelector("#add-to-shopping-list").checked;
     const inInventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
@@ -428,6 +431,7 @@ const newItemCreation = async (event)=>{
     }
   
     try {
+        
         const response = await fetch("/inventory/create", {
             method:"POST",
             body: JSON.stringify({
@@ -440,7 +444,7 @@ const newItemCreation = async (event)=>{
             redirect: "manual"
         })
         
-        data = await response.json()
+        let data = await response.json()
 
         console.log("data", data)
         if (response.ok) {
@@ -483,7 +487,7 @@ const newItemCreation = async (event)=>{
         }
     }
     catch(error) {
-        console.error("Error creating new item.");
+        console.error(error, "Error creating new item.");
     }
 }
 
@@ -509,19 +513,3 @@ function greyToWhite(clicked) {
     checkBlueSVG.style.visibility = "visible";
     clicked.append(checkBlueSVG);
 }
-
-function confirmationPopUp(message) {
-    const popupNotificationDashboard = document.querySelector("#popup-notification-slide-dashboard")
-    popupNotificationDashboard.classList.replace("inactive", "active")
-
-    const notifText = popupNotificationDashboard.querySelector('#popup-notification')
-    notifText.textContent = message;
-    setTimeout(()=>{
-        popupNotificationDashboard.classList.replace("active", "inactive")
-        setTimeout(()=>{
-            notifText.textContent = "";
-        }, 2000)
-
-    }, 3000)
-}
-
