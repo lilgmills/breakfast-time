@@ -5,6 +5,8 @@ const confirmModal = document.querySelector("#modal-are-you-sure");
 const modalBackdrop = document.querySelector('#modal-backdrop');
 const modalCreateItem = document.querySelector('#modal-create-inventory-item');
 
+// this stores the ID returned by setTimeout() for the timer that closes error popups
+let catchTimeout;
 
 const cachedSVGClone = document.querySelector("svg");
 cachedSVGClone.style.visibility = "hidden";
@@ -120,6 +122,7 @@ const requestItemDeletion = async (ingredient_id) => {
     }
     catch(error) {
         console.error(`${error}\nThere was an error with deleting item ${ingredient_id}`);
+        return
     }
 }
 
@@ -190,16 +193,25 @@ const closeDeleteModal = ()=>{
 
 const temporaryDeleteListener = (id_delete, deletedName) => {
     return async () => {
-        
-        const deleteResult = await requestItemDeletion(id_delete)
-        
-        console.log("deleteResult:", deleteResult)
-        
-        if(deleteResult.success) {
-            closeDeleteModal();
-            confirmationPopUp(`${deletedName} was deleted`)
-            document.querySelector(`#${id_delete}`)?.remove();
+    
+        try {
+            const deleteResult = await requestItemDeletion(id_delete)
+            
+            console.log("deleteResult:", deleteResult)
+            
+            if(deleteResult.success) {
+                closeDeleteModal();
+                confirmationPopUp(`${deletedName} was deleted`)
+                document.querySelector(`#${id_delete}`)?.remove();
+            }
         }
+        catch(error) {
+            console.log(error, `Deletion of ${deletedName} could not be completed`)
+            closeDeleteModal();
+            const errorMessage = `Deletion of ${deletedName} could not be completed`
+            populateErrorNotification(errorMessage);
+        }
+        
     }
 }
 // create an event handler for the delete confirmation
@@ -275,6 +287,8 @@ function activateDeleteModal(ingredient_id){
 
         modalCreateItem.style.visibility = "hidden";
 
+        // if this promise does not resolve, the modal simply does not show recipes
+        // I think this is fine and we don't need error notifications for it
         const deleteWarning = await createRecipeWarning(ingredient_id);
         writeDeleteWarning(deleteWarning);
         
@@ -284,7 +298,6 @@ function activateDeleteModal(ingredient_id){
         confirmModal.querySelector("#confirm-deletion")
             .addEventListener("click", thisDeleteEventListener);
         
-        // other event listeners for the delete modal buttons are created
         confirmModal.querySelector('#cancel-deletion')
             .addEventListener("click", closeDeleteModal);
     }
@@ -400,7 +413,7 @@ function populateErrorMessageForItemCreation(errorMessage) {
     const errorFeedback = document.querySelector("#input-error-feedback");
     errorFeedback.style.visibility = "visible";
     errorFeedback.textContent = errorMessage;
-    setInterval(()=>{
+    setTimeout(()=>{
         errorFeedback.textContent = "";
         errorFeedback.style.visibility = "hidden";
     },15000)
@@ -408,9 +421,7 @@ function populateErrorMessageForItemCreation(errorMessage) {
 
 
 function populateErrorNotification(errorNotificationMessage) {
-    if (catchTimeout) {
-        clearTimeout(catchTimeout)
-    }
+    clearTimeout(catchTimeout);
     const errorNotificationText = document.querySelector("#error-notification");
     errorNotificationText.textContent = errorNotificationMessage;
     const errorNotificationDashboard = document.querySelector("#error-notification-slide-dashboard")
@@ -419,10 +430,8 @@ function populateErrorNotification(errorNotificationMessage) {
         errorNotificationDashboard.classList.replace("active", "inactive");
     }
 
-    return setInterval(fadeOff, 5000)
+    catchTimeout = setTimeout(fadeOff, 5000)
 }
-
-let catchTimeout;
 
 const newItemCreation = async (event)=>{
     // You need to refactor this, man.
@@ -518,7 +527,7 @@ const newItemCreation = async (event)=>{
         console.error(error, "Error creating new item.");
         if(errorInCreate) {
             const errorNotificationMessage = `There was an error ${errorInCreate > 1 ? "" : specificErrorInfo}and item could not be created`;
-            catchTimeout = populateErrorNotification(errorNotificationMessage);
+            populateErrorNotification(errorNotificationMessage);
             closeCreateModal();
         }
     }
