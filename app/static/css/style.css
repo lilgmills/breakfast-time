@@ -608,17 +608,20 @@ h1 {
 }
 
 
-
-#popup-notification-slide-dashboard {
+.notification, .error-notification {
     position: fixed;
     display: flex;
     width:100vw;
     justify-content: space-around;
-    font-size: 2em;
+}
+
+#popup-notification-slide-dashboard {
+    font-size: 1.75em;
     font-style: italic;
     color: rgb(223, 221, 221);
     -webkit-text-stroke: 3px rgb(94, 89, 95);
     paint-order: stroke fill;
+    pointer-events: none;
 
     transition: opacity 1.2s ease-out,
         bottom 1.2s ease-out;
@@ -632,4 +635,44 @@ h1 {
 #popup-notification-slide-dashboard.active {
     bottom: 324px;
     opacity: 1;
+}
+
+.error-notification.active {
+    opacity: 1;
+}
+
+/*
+.error-notification.inactive {
+    opacity: 0;
+}
+*/
+
+#error-notification-slide-dashboard {
+    transition: opacity 0.2s linear;
+    bottom: 80px;
+}
+
+.svg-stack {
+    display:grid;
+    place-items: center;
+}
+
+.svg-stack > * {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: auto;
+}
+
+#error-notification-container {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 24px;
+    padding: 18px;
+}
+
+#error-notification {
+    font-size: 1.25em;
+    color: rgb(228, 177, 66);
+    padding: 0px 20px;
 }
