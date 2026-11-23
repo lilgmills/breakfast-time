@@ -641,15 +641,16 @@ h1 {
     opacity: 1;
 }
 
-/*
+
 .error-notification.inactive {
     opacity: 0;
 }
-*/
+
 
 #error-notification-slide-dashboard {
     transition: opacity 0.2s linear;
     bottom: 80px;
+    pointer-events: none;
 }
 
 .svg-stack {
@@ -675,4 +676,5 @@ h1 {
     font-size: 1.25em;
     color: rgb(228, 177, 66);
     padding: 0px 20px;
+    font-style: italic;
 }

@@ -346,6 +346,13 @@ const addItemToInventoryButton = document.querySelector('#add-new-inventory-item
 const createItemModal = document.querySelector('#modal-create-inventory-item');
 const cancelCreateItem = createItemModal.querySelector("#cancel-creation");
 const createSubmit = createItemModal.querySelector('#create-item-submit')
+const closeCreateModal = () => {
+    modalBackdrop.style.visibility = "hidden";
+    createItemModal.style.visibility = "hidden";
+
+    createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
+    createItemModal.querySelector("input[type=text]").value = "";
+}
 
 addItemToInventoryButton.addEventListener("click", (event)=>{
     modalBackdrop.style.visibility = "visible";
@@ -399,9 +406,28 @@ function populateErrorMessageForItemCreation(errorMessage) {
     },15000)
 }
 
+
+function populateErrorNotification(errorNotificationMessage) {
+    if (catchTimeout) {
+        clearTimeout(catchTimeout)
+    }
+    const errorNotificationText = document.querySelector("#error-notification");
+    errorNotificationText.textContent = errorNotificationMessage;
+    const errorNotificationDashboard = document.querySelector("#error-notification-slide-dashboard")
+    errorNotificationDashboard.classList.replace("inactive", "active");
+    const fadeOff = ()=>{
+        errorNotificationDashboard.classList.replace("active", "inactive");
+    }
+
+    return setInterval(fadeOff, 5000)
+}
+
+let catchTimeout;
+
 const newItemCreation = async (event)=>{
     // You need to refactor this, man.
-    
+    let errorInCreate = 0;
+    let specificErrorInfo = "";
     const newName = createItemModal.querySelector("input[type=text]").value.trim();
     const addShoppingList = createItemModal.querySelector("#add-to-shopping-list").checked;
     const inInventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
@@ -413,13 +439,15 @@ const newItemCreation = async (event)=>{
         textInputCreateItem.focus()
         return;
     }
-    let duplicatesOK = false;
+    let duplicatesOK = true;
     try {
         // returns true if no duplicates are found
         duplicatesOK = await checkForDuplicatesOK(newName);
     }
-    catch {
-        console.log("There was an error while checking for duplicates")
+    catch (error) {
+        console.error(error, "There was an error in checking for duplicates");
+        errorInCreate += 1;
+        specificErrorInfo = "checking duplicates ";
     }
 
     if(!duplicatesOK) {
@@ -451,13 +479,13 @@ const newItemCreation = async (event)=>{
             console.log("Request was made successfully");
         } else {
             console.error("Request failed:", response.status);
+            errorInCreate += 1;
+            specificErrorInfo = "making request to server "
         }
 
         console.log("\"data\".success:", data.success);
 
         if(data.success) {
-            
-
             const new_id = data.new_id;
             let shoppingResponse = addShoppingList ? await requestAddToShoppingList(`_${new_id}`) : true;
             
@@ -465,11 +493,7 @@ const newItemCreation = async (event)=>{
             if (shoppingResponse) {
                 createNewTableRow(new_id, newName, addShoppingList, inInventory);
                 
-                modalBackdrop.style.visibility = "hidden";
-                createItemModal.style.visibility = "hidden";
-            
-                createItemModal.querySelectorAll("input[type=checkbox]").forEach(b=>b.checked = false);
-                createItemModal.querySelector("input[type=text]").value = "";
+                closeCreateModal();
                 
                 const message = "Ingredient was successfully created"
                 confirmationPopUp(message)
@@ -479,16 +503,26 @@ const newItemCreation = async (event)=>{
             }
             else {
                 console.log(shoppingResponse);
+                errorInCreate += 1;
+                specificErrorInfo = "adding to shopping list "
             }
                 
         }
         else {
             console.log(data.message);
+            errorInCreate += 1;
+            specificErrorInfo = "adding to shopping list "
         }
     }
     catch(error) {
         console.error(error, "Error creating new item.");
+        if(errorInCreate) {
+            const errorNotificationMessage = `There was an error ${errorInCreate > 1 ? "" : specificErrorInfo}and item could not be created`;
+            catchTimeout = populateErrorNotification(errorNotificationMessage);
+            closeCreateModal();
+        }
     }
+    
 }
 
 createSubmit.addEventListener("click", async (event)=>{
