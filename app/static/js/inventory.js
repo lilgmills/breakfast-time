@@ -433,15 +433,18 @@ function populateErrorNotification(errorNotificationMessage) {
     catchTimeout = setTimeout(fadeOff, 5000)
 }
 
+function popupErrorAndStopProcess(errorInfo) {
+    populateErrorNotification(`There was an error ${errorInfo}and item could not be created`);
+    closeCreateModal();
+    return
+}
+
 const newItemCreation = async (event)=>{
     // You need to refactor this, man.
-    let errorInCreate = 0;
-    let specificErrorInfo = "";
     const newName = createItemModal.querySelector("input[type=text]").value.trim();
     const addShoppingList = createItemModal.querySelector("#add-to-shopping-list").checked;
     const inInventory = createItemModal.querySelector("#new-item-in-inventory").checked ? "1" : "0";
     const textInputCreateItem = createItemModal.querySelector("input[type=text]")
-    
     if(newName === "") {
         const errorMessage = "Please enter a name for the ingredient"
         populateErrorMessageForItemCreation(errorMessage)
@@ -454,11 +457,8 @@ const newItemCreation = async (event)=>{
         duplicatesOK = await checkForDuplicatesOK(newName);
     }
     catch (error) {
-        console.error(error, "There was an error in checking for duplicates");
-        errorInCreate += 1;
-        specificErrorInfo = "checking duplicates ";
+        popupErrorAndStopProcess("checking for duplicates ")
     }
-
     if(!duplicatesOK) {
         console.log("User entered a duplicate item.")
         const errorMessage = "There is already an ingredient with this name"
@@ -466,9 +466,8 @@ const newItemCreation = async (event)=>{
         textInputCreateItem.focus()
         return;
     }
-  
+    let data
     try {
-        
         const response = await fetch("/inventory/create", {
             method:"POST",
             body: JSON.stringify({
@@ -479,10 +478,8 @@ const newItemCreation = async (event)=>{
                 "Content-Type":"application/json",
             },
             redirect: "manual"
-        })
-        
-        let data = await response.json()
-
+        })    
+        data = await response.json()
         console.log("data", data)
         if (response.ok) {
             console.log("Request was made successfully");
@@ -493,45 +490,36 @@ const newItemCreation = async (event)=>{
         }
 
         console.log("\"data\".success:", data.success);
-
-        if(data.success) {
-            const new_id = data.new_id;
-            let shoppingResponse = addShoppingList ? await requestAddToShoppingList(`_${new_id}`) : true;
-            
-            console.log("shopping list update OK for " + new_id + "?", shoppingResponse)
-            if (shoppingResponse) {
-                createNewTableRow(new_id, newName, addShoppingList, inInventory);
-                
-                closeCreateModal();
-                
-                const message = "Ingredient was successfully created"
-                confirmationPopUp(message)
-
-                // this should belong to a reset() function
-                createItemModal.querySelector("#input-error-feedback").textContent = "";
-            }
-            else {
-                console.log(shoppingResponse);
-                errorInCreate += 1;
-                specificErrorInfo = "adding to shopping list "
-            }
-                
-        }
-        else {
-            console.log(data.message);
-            errorInCreate += 1;
-            specificErrorInfo = "adding to shopping list "
-        }
     }
     catch(error) {
         console.error(error, "Error creating new item.");
-        if(errorInCreate) {
-            const errorNotificationMessage = `There was an error ${errorInCreate > 1 ? "" : specificErrorInfo}and item could not be created`;
-            populateErrorNotification(errorNotificationMessage);
-            closeCreateModal();
-        }
+        popupErrorAndStopProcess("creating new item ");
     }
-    
+    if(data.success) {
+        const new_id = data.new_id;
+        let shoppingResponse;
+        try {
+            shoppingResponse = addShoppingList ? await requestAddToShoppingList(`_${new_id}`) : true;
+        }
+        catch(error) {
+            popupErrorAndStopProcess("adding to shopping list ");
+        }
+        console.log("shopping list update OK for " + new_id + "?", shoppingResponse)
+        if (shoppingResponse) {
+            createNewTableRow(new_id, newName, addShoppingList, inInventory);
+            closeCreateModal();
+            const message = "Ingredient was successfully created"
+            confirmationPopUp(message)
+            // this should belong to a reset() function
+            createItemModal.querySelector("#input-error-feedback").textContent = "";
+        }
+        else {
+            popupErrorAndStopProcess("adding to shopping list ");
+        }      
+    }
+    else {
+        popupErrorAndStopProcess("creating new item ");
+    }
 }
 
 createSubmit.addEventListener("click", async (event)=>{
