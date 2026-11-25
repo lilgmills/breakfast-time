@@ -484,12 +484,9 @@ const newItemCreation = async (event)=>{
         if (response.ok) {
             console.log("Request was made successfully");
         } else {
-            console.error("Request failed:", response.status);
-            errorInCreate += 1;
-            specificErrorInfo = "making request to server "
+            console.error(error, "Request failed:", response.status);
+            popupErrorAndStopProcess("adding to inventory ");
         }
-
-        console.log("\"data\".success:", data.success);
     }
     catch(error) {
         console.error(error, "Error creating new item.");
