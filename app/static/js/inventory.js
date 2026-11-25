@@ -11,7 +11,7 @@ let catchTimeout;
 const cachedSVGClone = document.querySelector("svg");
 cachedSVGClone.style.visibility = "hidden";
 
-function createNewTableRow(new_id, newName, addShoppingList, inInventory) {
+async function createNewTableRow(new_id, newName, addShoppingList, inInventory) {
     // create the p tag for the ingredient name
     const nameText = document.createElement('p');
     nameText.textContent = newName;
@@ -42,15 +42,30 @@ function createNewTableRow(new_id, newName, addShoppingList, inInventory) {
     const checkDetectClick = document.createElement('div');
     checkDetectClick.className = "check-detect-click"
     checkDetectClick.append(shoppingStateElement)
-    checkDetectClick.addEventListener("click", (event)=> {
-        toggleShoppingCheckmark(event)
+    checkDetectClick.addEventListener("click", async (event)=> {
+        
         if (checkDetectClick.querySelector('svg')) {
-            requestDeleteFromShoppingList(tableRow.id);
-            whiteToGrey(checkDetectClick);
+            const response = await requestDeleteFromShoppingList(tableRow.id);
+            if (response) {
+                toggleShoppingCheckmark(event)
+                whiteToGrey(checkDetectClick);
+            }
+            else {
+                let errorMessage = "Shopping list could not be updated at this time"
+                populateErrorNotification(errorMessage)
+            }      
         }
         else if (checkDetectClick.querySelector('.grey-outline')) {
-            requestAddToShoppingList(tableRow.id);
-            greyToWhite(checkDetectClick);
+            const response = await requestAddToShoppingList(tableRow.id);
+            if (response){               
+                toggleShoppingCheckmark(event)
+                greyToWhite(checkDetectClick);
+            }
+            else {
+                let errorMessage = "Shopping list could not be updated at this time"
+                populateErrorNotification(errorMessage)
+            }
+            
         }
     });
     
@@ -70,7 +85,27 @@ function createNewTableRow(new_id, newName, addShoppingList, inInventory) {
     const toggleDiv = document.createElement('div');
     toggleDiv.textContent = inInventory == "1" ? "Yes" : "No";
     toggleDiv.className = inInventory == "1" ? "true-in-inventory toggle" : "false-in-inventory toggle";
-    toggleDiv.addEventListener("click", (event)=>toggleInInventory(event))
+    toggleDiv.addEventListener("click", async (event)=>{
+        // request inventory update
+        try {
+            const response = await fetch(`/inventory/${tableRow.id.slice(1)}`);
+            if(response.ok) {
+                console.log("Inventory updated successfully.")
+                toggleInInventory(event);
+            }
+            else {
+                console.log("Request failed.", response.status);
+                let errorMessage = "Inventory could not be updated at this time"
+                populateErrorNotification(errorMessage);
+            }
+
+        } catch (error) {
+            console.error(error, "Error updating inventory");
+            let errorMessage = "Inventory could not be updated at this time"
+            populateErrorNotification(errorMessage);
+        }
+        
+    })
     
     const tdInInventory = document.createElement('td');
     tdInInventory.className = "ingredient-in-inventory";
@@ -178,10 +213,12 @@ const requestDeleteFromShoppingList = async (ingredient_id) => {
             return true;
         } else {
             console.error("Request failed:", response.status);
+            return false;
         }
     }
     catch (error) {
         console.error("Error sending shopping list")
+        return false;
     }
 }
 
@@ -314,11 +351,6 @@ allRows.forEach((tr)=>{
     tr.querySelector('.delete-button-background').addEventListener("click", activateDeleteModal(ingredient_id))
 })
 
-const toggles = document.querySelectorAll('.toggle');
-
-toggles.forEach((toggle)=>{
-    toggle.addEventListener("click", (event)=>toggleInInventory(event))
-});
 
 allRows.forEach((row)=>{
 
@@ -326,14 +358,23 @@ allRows.forEach((row)=>{
 
     // event handlers for the toggles
     const clickable = row.querySelector(".check-detect-click")
-    clickable.addEventListener("click", ()=>{
+    clickable.addEventListener("click", async ()=>{
         if (clickable.querySelector('svg')) {
-            requestDeleteFromShoppingList(ingredient_id);
-            whiteToGrey(clickable);
+            let success = await requestDeleteFromShoppingList(ingredient_id);
+            if(success) whiteToGrey(clickable);
+            else {
+                let errorMessage = "Shopping list could not be updated at this time"
+                populateErrorNotification(errorMessage);
+            }
         }
         else if (clickable.querySelector('.grey-outline')) {
-            requestAddToShoppingList(ingredient_id);
-            greyToWhite(clickable);
+            let success = await requestAddToShoppingList(ingredient_id);
+            if (success) greyToWhite(clickable);
+            else {
+                let errorMessage = "Shopping list could not be updated at this time"
+                populateErrorNotification(errorMessage);
+            }
+            
         }
     })
     
@@ -344,13 +385,18 @@ allRows.forEach((row)=>{
             const response = await fetch(`/inventory/${ingredient_id.slice(1)}`);
             if(response.ok) {
                 console.log("Inventory updated successfully.")
+                toggleInInventory(event);
             }
             else {
                 console.log("Request failed.", response.status);
+                let errorMessage = "Inventory could not be updated at this time"
+                populateErrorNotification(errorMessage);
             }
 
         } catch (error) {
-            console.error("Error updating inventory");
+            console.error(error, "Error updating inventory");
+            let errorMessage = "Inventory could not be updated at this time"
+            populateErrorNotification(errorMessage);
         }
     })
 })

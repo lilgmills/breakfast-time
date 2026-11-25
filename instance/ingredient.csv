@@ -8,7 +8,7 @@ ingredient_id,ingredient_name,in_inventory
 6,chia seeds,1
 7,spinach,1
 8,eggs,1
-9,mushrooms,1
+9,mushrooms,0
 10,bell peppers,1
 11,cheddar cheese,1
 12,mozzarella cheese,1
@@ -20,7 +20,7 @@ ingredient_id,ingredient_name,in_inventory
 18,walnuts,0
 19,peanut butter,1
 20,banana,0
-21,whole-grain bread,1
+21,whole-grain bread,0
 22,white bread,1
 23,avocado,1
 24,tortillas,1
@@ -36,11 +36,16 @@ ingredient_id,ingredient_name,in_inventory
 34,whole-grain waffles,1
 35,almonds,1
 36,oatmeal,1
-37,almond butter,1
+37,almond butter,0
 38,cinnamon,1
-39,English muffins,1
+39,English muffins,0
 40,broccoli,0
 41,frozen broccoli,1
 42,2% milk,1
 43,oat milk,1
-44,X dot com,0
+45,Can we edit this?,0
+46,Weeop,0
+47,chewps,0
+48,New pony,0
+49,Newer pony,0
+50,skoog,1
